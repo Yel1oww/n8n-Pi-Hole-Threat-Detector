@@ -242,7 +242,7 @@
     },
     {
       "parameters": {
-        "jsCode": "return $input.all().map(item => {\n  const data = item.json;\n  const domain = data.domain || data.data?.id || data.indicator || \"unknown\";\n  const vt = data.data?.attributes?.last_analysis_stats?.malicious || 0;\n  const avItems = $(\"AlienVault Scan\").all();\n  let pulses = 0;\n  const avMatch = avItems.find(i => (i.json.indicator === domain || i.json.domain === domain));\n  if (avMatch && avMatch.json.pulse_info) {\n    pulses = avMatch.json.pulse_info.count || 0;\n  }\n  const blocked = (vt >= 10);\n  return {\n    json: {\n      domain: domain,\n      pulses: pulses,\n      vt_detections: vt,\n      blocked: blocked\n    }\n  };\n}).filter(i => i.json.domain !== \"unknown\");"
+        "jsCode": "return $input.all().map(item => {\n  const data = item.json;\n  const domain = data.domain || data.data?.id || data.indicator || \"unknown\";\n  const vt = data.data?.attributes?.last_analysis_stats?.malicious || 0;\n  const avItems = $(\"AlienVault Scan\").all();\n  let pulses = 0;\n  const avMatch = avItems.find(i => (i.json.indicator === domain || i.json.domain === domain));\n  if (avMatch && avMatch.json.pulse_info) {\n    pulses = avMatch.json.pulse_info.count || 0;\n  }\n  const blocked = (vt >= 5);\n  return {\n    json: {\n      domain: domain,\n      pulses: pulses,\n      vt_detections: vt,\n      blocked: blocked\n    }\n  };\n}).filter(i => i.json.domain !== \"unknown\");"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,

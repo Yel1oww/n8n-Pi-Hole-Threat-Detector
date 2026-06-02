@@ -36,7 +36,7 @@ Before you begin, make sure you have the following running and accessible on you
 | Service | Notes |
 | :--- | :--- |
 | **Pi-hole** | API access must be enabled (v5+ or FTL API) |
-| **n8n** | Self-hosted or Cloud — v1.x recommended |
+| **n8n** | Self-hosted — v1.x recommended |
 | **InfluxDB 2.x** | Used as the time-series store |
 | **Grafana** | Connected to your InfluxDB instance |
 

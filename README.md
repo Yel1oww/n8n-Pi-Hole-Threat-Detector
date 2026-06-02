@@ -4,7 +4,8 @@ An automated, closed-loop threat intelligence pipeline that monitors your **Pi-h
 
 > Built with n8n · Pi-hole · InfluxDB · Grafana · VirusTotal · AlienVault OTX
 
-![Grafana Dashboard](grafana_dashboard_image.PNG)
+![Grafana Dashboard](grafana_dashboard_image1.PNG)
+![Grafana Dashboard](grafana_dashboard_image2.PNG)
 
 ---
 

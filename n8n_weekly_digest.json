@@ -1,0 +1,210 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * 1"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "6561bc99-ed30-4b32-a353-1adc36f44411",
+      "name": "Weekly Monday 9am"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://[YOUR_INFLUXDB_IP]:8086/api/v2/query?org=[YOUR_ORG_NAME]",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/vnd.flux",
+        "body": "from(bucket: \"[YOUR_BUCKET_NAME]\") |> range(start: -7d)\n|> filter(fn: (r) => r._measurement == \"domain_threats\" and r._field == \"vt_detections\")\n|> group() |> count()",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/csv"
+            }
+          ]
+        },
+        "options": {},
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth"
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        220,
+        0
+      ],
+      "id": "43896334-05c4-4709-ab65-b813876c431f",
+      "name": "Q Scanned",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://[YOUR_INFLUXDB_IP]:8086/api/v2/query?org=[YOUR_ORG_NAME]",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/vnd.flux",
+        "body": "from(bucket: \"[YOUR_BUCKET_NAME]\") |> range(start: -7d)\n|> filter(fn: (r) => r._measurement == \"domain_threats\" and r._field == \"blocked\" and r._value == true)\n|> group() |> count()",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/csv"
+            }
+          ]
+        },
+        "options": {},
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth"
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        0
+      ],
+      "id": "9bc922a2-465a-4621-8d1f-79b9fd357dd9",
+      "name": "Q Blocked",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://[YOUR_INFLUXDB_IP]:8086/api/v2/query?org=[YOUR_ORG_NAME]",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/vnd.flux",
+        "body": "from(bucket: \"[YOUR_BUCKET_NAME]\") |> range(start: -7d)\n|> filter(fn: (r) => r._measurement == \"domain_threats\" and r._field == \"blocked\" and r._value == true)\n|> group(columns: [\"client\"]) |> count() |> group()\n|> sort(columns: [\"_value\"], desc: true) |> limit(n: 5)",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/csv"
+            }
+          ]
+        },
+        "options": {},
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth"
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        660,
+        0
+      ],
+      "id": "6f43034b-d0bf-487f-b95e-479e8f355eae",
+      "name": "Q Top Clients",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "function csvRows(node) {\n  let raw = $(node).first().json;\n  let t = typeof raw === \"string\" ? raw : (raw.data || raw.body || \"\");\n  if (typeof t !== \"string\") t = \"\";\n  const lines = t.split(\"\\n\").map(l => l.replace(/\\r$/, \"\")).filter(l => l && !l.startsWith(\"#\"));\n  if (!lines.length) return { header: [], rows: [] };\n  const header = lines.shift().split(\",\");\n  return { header, rows: lines.map(l => l.split(\",\")) };\n}\nfunction total(node) {\n  const { header, rows } = csvRows(node);\n  const vi = header.indexOf(\"_value\");\n  let sum = 0;\n  for (const r of rows) { const v = parseInt((r[vi] || \"\").trim(), 10); if (!isNaN(v)) sum += v; }\n  return sum;\n}\nfunction topClients() {\n  const { header, rows } = csvRows(\"Q Top Clients\");\n  const ci = header.indexOf(\"client\"), vi = header.indexOf(\"_value\");\n  const out = [];\n  for (const r of rows) {\n    if (ci >= 0 && vi >= 0 && r[ci] && r[ci].trim()) out.push(`  \u2022 ${r[ci].trim()}: ${(r[vi]||\"\").trim()}`);\n  }\n  return out.length ? out.join(\"\\n\") : \"  \u2022 none\";\n}\nconst scanned = total(\"Q Scanned\");\nconst blocked = total(\"Q Blocked\");\nconst msg = `Domains scanned: ${scanned}\\nDomains blocked: ${blocked}\\n\\nTop offending clients:\\n${topClients()}`;\nconst content = `\ud83d\udcc5 **Weekly DNS Digest** (last 7 days)\\n\\`\\`\\`\\n${msg}\\n\\`\\`\\``;\nreturn [{ json: { title: \"Weekly DNS Digest\", message: msg, content } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        0
+      ],
+      "id": "3b5c7470-8c65-4ea8-b702-f2994f3c64d0",
+      "name": "Format Digest"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "[YOUR_DISCORD_WEBHOOK_URL]",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={ \"content\": {{ JSON.stringify($json.content) }} }",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1100,
+        0
+      ],
+      "id": "e094aee3-ab59-4eb9-b994-7523af75d40a",
+      "name": "Notify Discord",
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "Weekly Monday 9am": {
+      "main": [
+        [
+          {
+            "node": "Q Scanned",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Q Scanned": {
+      "main": [
+        [
+          {
+            "node": "Q Blocked",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Q Blocked": {
+      "main": [
+        [
+          {
+            "node": "Q Top Clients",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Q Top Clients": {
+      "main": [
+        [
+          {
+            "node": "Format Digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Digest": {
+      "main": [
+        [
+          {
+            "node": "Notify Discord",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "pihole-weekly-digest"
+  }
+}

@@ -14,15 +14,66 @@
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.1,
       "position": [
-        -2560,
+        -3200,
         0
       ],
-      "id": "09696f56-404a-412f-8bb8-cbacc3c218aa",
+      "id": "fb56286e-850c-4458-ad91-8002bd1218d3",
       "name": "Schedule Trigger"
     },
     {
       "parameters": {
-        "url": "http://[YOUR_PIHOLE_IP]/api/queries",
+        "url": "http://[YOUR_INFLUXDB_IP]:8086/api/v2/query?org=[YOUR_ORG_NAME]",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        },
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/csv"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/vnd.flux",
+        "body": "=import \"date\"\nfrom(bucket: \"[YOUR_BUCKET_NAME]\")\n  |> range(start: date.truncate(t: now(), unit: 1d))\n  |> filter(fn: (r) => r._measurement == \"vt_usage\" and r._field == \"lookup\")\n  |> sum()",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth"
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -3000,
+        0
+      ],
+      "id": "c68d7635-2aa8-4422-b469-d4f540d1c4da",
+      "name": "VT Quota Check",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "\n// Parse the annotated CSV Flux result into a single running total for today.\nlet used = 0;\nconst raw = $input.first().json;\nlet text = typeof raw === \"string\" ? raw : (raw.data || raw.body || \"\");\nif (typeof text !== \"string\") text = JSON.stringify(text);\nfor (const line of text.split(\"\\n\")) {\n  const cols = line.split(\",\");\n  // annotated CSV: _value is the last numeric column on data rows (skip headers/comments)\n  if (cols.length > 3 && !line.startsWith(\"#\") && !line.includes(\"_value\")) {\n    const v = parseInt(cols[cols.length - 1].trim(), 10);\n    if (!isNaN(v)) used += v;\n  }\n}\nreturn [{ json: { usedToday: used, vtLimit: 480} }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2800,
+        0
+      ],
+      "id": "4d47fa9d-8e3c-484e-8b7b-9a15a4b88ace",
+      "name": "VT Quota Parse"
+    },
+    {
+      "parameters": {
+        "url": "http://[YOUR_PIHOLE_PRIMARY_IP]/api/queries",
+        "options": {},
         "sendQuery": true,
         "queryParameters": {
           "parameters": [
@@ -31,20 +82,19 @@
               "value": "={{ Math.floor(Date.now() / 1000) - 300 }}"
             },
             {
-              "name": "limit",
-              "value": "2000"
+              "name": "length",
+              "value": "5000"
             }
           ]
-        },
-        "options": {}
+        }
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        -2352,
+        -2600,
         0
       ],
-      "id": "7dde5485-cadf-4482-a4fe-3f808b41e1a8",
+      "id": "98a4e0db-9545-4545-a202-b6b01a01cc18",
       "name": "Get Pi-hole Logs"
     },
     {
@@ -55,31 +105,43 @@
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
       "position": [
-        -2160,
+        -2400,
         0
       ],
-      "id": "0a94c093-cac6-4164-8e74-779c205ac766",
+      "id": "02381001-3073-435e-99f4-38b465838005",
       "name": "Split Out"
     },
     {
       "parameters": {
-        "jsCode": "const domains = $input.all().map(i => i.json.domain).filter(d => d);\nconst unique = [...new Set(domains)];\n\nreturn unique\n  .map(d => d.toLowerCase().trim())\n  .filter(d => d !== \"unknown\" && d !== \"\" && !d.includes('.arpa'))\n  .map(d => ({ json: { domain: d } }));"
+        "jsCode": "// Build a domain -> {client counts} map so we keep attribution, not just the domain.\nconst counts = {};\nfor (const it of $input.all()) {\n  const q = it.json;\n  let d = (q.domain || \"\").toLowerCase().trim();\n  if (!d || d === \"unknown\" || d.includes(\".arpa\")) continue;\n  // Pi-hole v6 client is an object {ip,name}; fall back to string\n  let c = \"unknown\";\n  if (q.client && typeof q.client === \"object\") c = q.client.name || q.client.ip || \"unknown\";\n  else if (typeof q.client === \"string\") c = q.client;\n  counts[d] = counts[d] || {};\n  counts[d][c] = (counts[d][c] || 0) + 1;\n}\nreturn Object.keys(counts).map(d => {\n  const byClient = counts[d];\n  const primary = Object.keys(byClient).sort((a, b) => byClient[b] - byClient[a])[0];\n  return { json: { domain: d, client: primary, client_count: Object.keys(byClient).length } };\n});"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1952,
+        -2200,
         0
       ],
-      "id": "a7236842-2a7f-4ba3-ab03-7894a513a363",
+      "id": "657926c5-a558-4648-ad3a-8022ccd959e7",
       "name": "Filter Unique & Clean"
     },
     {
       "parameters": {
-        "method": "POST",
+        "jsCode": "// ---- edit this watchlist: your bank, employer, email + big brands you want protected ----\nconst WATCH = [\"google\",\"paypal\",\"microsoft\",\"apple\",\"amazon\",\"netflix\",\n  \"whatsapp\",\"instagram\",\"facebook\",\"outlook\",\"gmail\",\"binance\",\"coinbase\"];\n\nfunction shannon(s) {\n  const f = {}; for (const ch of s) f[ch] = (f[ch] || 0) + 1;\n  let h = 0; const n = s.length || 1;\n  for (const k in f) { const p = f[k] / n; h -= p * Math.log2(p); }\n  return h;\n}\nfunction lev(a, b) {\n  const m = a.length, n = b.length;\n  const dp = Array.from({length: m + 1}, (_, i) => [i, ...Array(n).fill(0)]);\n  for (let j = 0; j <= n; j++) dp[0][j] = j;\n  for (let i = 1; i <= m; i++) for (let j = 1; j <= n; j++)\n    dp[i][j] = Math.min(dp[i-1][j] + 1, dp[i][j-1] + 1,\n      dp[i-1][j-1] + (a[i-1] === b[j-1] ? 0 : 1));\n  return dp[m][n];\n}\n\nreturn $input.all().map(it => {\n  const domain = it.json.domain;\n  const labels = domain.split(\".\");\n  const sld = labels.length >= 2 ? labels[labels.length - 2] : domain; // registrable label\n  const bare = domain.replace(/\\./g, \"\");\n  const entropy = Math.round(shannon(bare) * 100) / 100;\n  const dga_suspect = entropy > 3.8 && bare.length > 12;\n  const punycode = labels.some(l => l.startsWith(\"xn--\"));\n  let typosquat = false, typosquat_target = \"\";\n  for (const w of WATCH) {\n    if (sld === w) { typosquat = false; break; }        // exact match = legit\n    const d = lev(sld, w);\n    if (d >= 1 && d <= 2 && Math.abs(sld.length - w.length) <= 2) {\n      typosquat = true; typosquat_target = w; break;\n    }\n  }\n  return { json: { ...it.json, entropy, dga_suspect, punycode, typosquat, typosquat_target } };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2000,
+        0
+      ],
+      "id": "de30e975-f712-4d38-947e-53a8270e15a4",
+      "name": "Local Enrich"
+    },
+    {
+      "parameters": {
         "url": "http://[YOUR_INFLUXDB_IP]:8086/api/v2/query?org=[YOUR_ORG_NAME]",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
+        "options": {},
+        "method": "POST",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -92,20 +154,17 @@
         "sendBody": true,
         "contentType": "raw",
         "rawContentType": "application/vnd.flux",
-        "body": "=from(bucket: \"[YOUR_BUCKET_NAME]\") |> range(start: -30d)\n|> filter(fn: (r) => r._measurement == \"domain_threats\" and r.domain == \"{{ $json.domain }}\") \n|> last()",
-        "options": {
-          "response": {
-            "response": {}
-          }
-        }
+        "body": "=from(bucket: \"[YOUR_BUCKET_NAME]\") |> range(start: -30d)\n|> filter(fn: (r) => r._measurement == \"domain_threats\" and r.domain == \"{{ $json.domain }}\")\n|> last()",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth"
       },
       "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
+      "typeVersion": 4.2,
       "position": [
-        -1744,
+        -1800,
         0
       ],
-      "id": "9c63e0d0-4bd8-45b7-8fcb-ae5e4c7aa707",
+      "id": "b022d925-0c8e-43d1-8679-cc3190e9d670",
       "name": "Check Influx Cache",
       "onError": "continueRegularOutput"
     },
@@ -120,13 +179,13 @@
           },
           "conditions": [
             {
+              "id": "66479f38-9647-4521-826c-ce6cd3bbc49f",
               "leftValue": "={{ $json.data }}",
               "rightValue": "_result",
               "operator": {
                 "type": "string",
                 "operation": "contains"
-              },
-              "id": "fcae7354-758f-4190-b353-7b09fec4e18f"
+              }
             }
           ],
           "combinator": "and"
@@ -136,143 +195,11 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -1536,
+        -1600,
         0
       ],
-      "id": "1472217c-27dc-47ae-a7c9-f1d9229ac370",
+      "id": "d2ca42c2-5c86-48ea-b874-c439071897c4",
       "name": "Is Cached?"
-    },
-    {
-      "parameters": {
-        "url": "=https://otx.alienvault.com/api/v1/indicators/domain/{{ $('Filter Unique & Clean').item.json.domain }}/general",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "X-OTX-API-KEY",
-              "value": "[YOUR_ALIENVAULT_API_KEY]"
-            }
-          ]
-        },
-        "options": {
-          "batching": {
-            "batch": {
-              "batchSize": 1,
-              "batchInterval": 5000
-            }
-          }
-        }
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
-      "position": [
-        -1312,
-        128
-      ],
-      "id": "916fa6c6-e9ac-4dfe-8dcc-b39d89efb349",
-      "name": "AlienVault Scan",
-      "retryOnFail": true,
-      "maxTries": 2,
-      "onError": "continueErrorOutput"
-    },
-    {
-      "parameters": {
-        "url": "=https://www.virustotal.com/api/v3/domains/{{ $('Filter Unique & Clean').item.json.domain }}",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "x-apikey",
-              "value": "[YOUR_VIRUSTOTAL_API_KEY]"
-            }
-          ]
-        },
-        "options": {
-          "batching": {
-            "batch": {
-              "batchSize": 1,
-              "batchInterval": 16000
-            }
-          }
-        }
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "position": [
-        -896,
-        0
-      ],
-      "id": "0dded50f-30db-4f03-8999-01d9f86efb31",
-      "name": "VirusTotal Scan",
-      "typeVersion": 4.3,
-      "onError": "continueErrorOutput"
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "http://[YOUR_PIHOLE_IP]/api/domains/deny/exact",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "X-Pihole-Authentication",
-              "value": "[YOUR_PIHOLE_AUTH_TOKEN]"
-            },
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            },
-            {
-              "name": "X-Pihole-Sudo",
-              "value": "true"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"domain\": \"{{ $json.data.id }}\",\n  \"groups\": [0],\n  \"comment\": \"n8n Security\"\n}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "position": [
-        -480,
-        -48
-      ],
-      "id": "05e8cb1c-0bda-467a-9876-285403e85a90",
-      "name": "Block Domain",
-      "typeVersion": 4.3
-    },
-    {
-      "parameters": {
-        "jsCode": "return $input.all().map(item => {\n  const data = item.json;\n  const domain = data.domain || data.data?.id || data.indicator || \"unknown\";\n  const vt = data.data?.attributes?.last_analysis_stats?.malicious || 0;\n  const avItems = $(\"AlienVault Scan\").all();\n  let pulses = 0;\n  const avMatch = avItems.find(i => (i.json.indicator === domain || i.json.domain === domain));\n  if (avMatch && avMatch.json.pulse_info) {\n    pulses = avMatch.json.pulse_info.count || 0;\n  }\n  const blocked = (vt >= 5);\n  return {\n    json: {\n      domain: domain,\n      pulses: pulses,\n      vt_detections: vt,\n      blocked: blocked\n    }\n  };\n}).filter(i => i.json.domain !== \"unknown\");"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -272,
-        192
-      ],
-      "id": "a964e42d-03f1-496f-ac00-85401e89abd0",
-      "name": "Prepare Influx Data"
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "http://[YOUR_INFLUXDB_IP]:8086/api/v2/write?org=[YOUR_ORG_NAME]&bucket=[YOUR_BUCKET_NAME]&precision=ms",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendBody": true,
-        "contentType": "raw",
-        "body": "=domain_threats,domain={{ $json.domain.replace(' ', '') }} pulses={{ $json.pulses || 0 }}i,vt_detections={{ $json.vt_detections || 0 }}i,blocked={{ $json.blocked ? 'true' : 'false' }} {{ Date.now() }}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
-      "position": [
-        -64,
-        192
-      ],
-      "id": "0230252b-540f-4ad0-910d-e7b656ccb717",
-      "name": "Push to InfluxDB"
     },
     {
       "parameters": {
@@ -285,7 +212,103 @@
           },
           "conditions": [
             {
-              "id": "d86f9337-6184-4946-bf43-27655a428852",
+              "id": "88f93159-94b1-4dc1-a234-ebc3d1475611",
+              "leftValue": "={{ $('VT Quota Parse').first().json.usedToday }}",
+              "rightValue": 480,
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1400,
+        0
+      ],
+      "id": "c64533d3-c295-48dd-be47-ccddce9a0963",
+      "name": "Under VT Quota?"
+    },
+    {
+      "parameters": {
+        "url": "http://[YOUR_INFLUXDB_IP]:8086/api/v2/write?org=[YOUR_ORG_NAME]&bucket=[YOUR_BUCKET_NAME]&precision=ms",
+        "options": {},
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "body": "=vt_usage deferred=1i {{ Date.now() }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth"
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1200,
+        220
+      ],
+      "id": "35e060e9-d5d3-47a0-ba06-2d1b464f3ee0",
+      "name": "Log Deferred",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "=https://otx.alienvault.com/api/v1/indicators/domain/{{ $('Filter Unique & Clean').item.json.domain }}/general",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 5000
+            }
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-OTX-API-KEY",
+              "value": "[YOUR_ALIENVAULT_API_KEY]"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -1200,
+        0
+      ],
+      "id": "98d56521-ff0f-486c-9979-c2362df4c18e",
+      "name": "AlienVault Scan",
+      "onError": "continueErrorOutput",
+      "retryOnFail": true,
+      "maxTries": 2
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "2536bc0f-754e-490e-aafe-a9f351e6462d",
               "leftValue": "={{ $json.pulse_info?.count || 0 }}",
               "rightValue": 0,
               "operator": {
@@ -301,11 +324,128 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -1088,
-        128
+        -1000,
+        0
       ],
-      "id": "18dce603-4811-4dce-96e2-b8223b53c5db",
+      "id": "7d5252d1-301c-4516-94a6-3f19ca32eb42",
       "name": "Has Pulse?"
+    },
+    {
+      "parameters": {
+        "url": "=http://ip-api.com/json/{{ $('Filter Unique & Clean').item.json.domain }}?fields=status,country,countryCode,as,org,query",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -800,
+        -120
+      ],
+      "id": "e8ce6427-7897-48ba-b9c5-af2b78bf9b24",
+      "name": "GeoIP Lookup",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// GeoIP Lookup's INPUT item (from \"Has Pulse?\") still carries the AlienVault json,\n// whose `indicator` is the domain. Read the geo from this node's own input ($json),\n// and the domain from the item that entered GeoIP Lookup.\nconst j = $input.first().json || {};\nlet domain = j.query || \"unknown\";\ntry {\n  const src = $(\"Has Pulse?\").first().json;\n  domain = src.indicator || src.domain || domain;\n} catch (e) {}\nlet asn = \"\", asn_org = j.org || \"\";\nif (j.as) { const m = j.as.match(/^(AS\\d+)\\s*(.*)$/); if (m) { asn = m[1]; asn_org = asn_org || m[2]; } }\nreturn [{ json: { domain, country: j.countryCode || \"??\", country_name: j.country || \"Unknown\",\n  asn, asn_org: (asn_org || \"unknown\") } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -600,
+        -120
+      ],
+      "id": "061db744-7c63-47b7-8d80-0ad16238c708",
+      "name": "GeoIP Normalize"
+    },
+    {
+      "parameters": {
+        "url": "=https://rdap.org/domain/{{ $json.domain }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -800,
+        120
+      ],
+      "id": "59ca9831-8a62-4ad2-9826-9665e77518ec",
+      "name": "RDAP Lookup",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = $input.first().json || {};\nlet domain = \"unknown\";\ntry { domain = $(\"GeoIP Normalize\").first().json.domain || \"unknown\"; } catch (e) {}\nif (domain === \"unknown\") domain = j.ldhName ? String(j.ldhName).toLowerCase() : \"unknown\";\nlet age = -1, newly = false;\ntry {\n  let events = j.events;\n  if (!events && typeof (j.data || j.body) === \"string\") {\n    try { const p = JSON.parse(j.data || j.body); events = p.events; } catch (e) {}\n  }\n  events = events || [];\n  let ev = events.find(e => e.eventAction === \"registration\");\n  if (!ev && events.length) {\n    ev = events.slice().sort((a, b) => new Date(a.eventDate) - new Date(b.eventDate))[0];\n  }\n  if (ev && ev.eventDate) {\n    const t = new Date(ev.eventDate).getTime();\n    if (!isNaN(t)) { age = Math.floor((Date.now() - t) / 86400000); newly = age >= 0 && age < 30; }\n  }\n} catch (e) {}\nreturn [{ json: { domain, domain_age_days: age, newly_registered: newly } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -600,
+        120
+      ],
+      "id": "3fa33c6b-3316-4507-9e3e-34de70027a78",
+      "name": "RDAP Normalize"
+    },
+    {
+      "parameters": {
+        "url": "=https://www.virustotal.com/api/v3/domains/{{ $('Filter Unique & Clean').item.json.domain }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 16000
+            }
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-apikey",
+              "value": "[YOUR_VIRUSTOTAL_API_KEY]"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -400,
+        0
+      ],
+      "id": "25127fd3-cfb2-404b-a870-186753293a47",
+      "name": "VirusTotal Scan",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "url": "http://[YOUR_INFLUXDB_IP]:8086/api/v2/write?org=[YOUR_ORG_NAME]&bucket=[YOUR_BUCKET_NAME]&precision=ms",
+        "options": {},
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "body": "=vt_usage lookup=1i {{ Date.now() }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth"
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -400,
+        200
+      ],
+      "id": "b5c4e4d0-beed-4ab4-8d52-75925b4d7e7d",
+      "name": "Log VT Usage",
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -318,12 +458,12 @@
           },
           "conditions": [
             {
-              "id": "1baba349-cb97-4282-bca2-e4846deca8c1",
+              "id": "0d7651c6-1324-49dd-bcf5-533326ad9cbd",
               "leftValue": "={{ $json.data?.attributes?.last_analysis_stats?.malicious || 0 }}",
               "rightValue": 5,
               "operator": {
                 "type": "number",
-                "operation": "gt"
+                "operation": "gte"
               }
             }
           ],
@@ -334,11 +474,111 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -720,
+        -200,
         0
       ],
-      "id": "2ae4ae40-cd05-4d38-acbe-947b73c80040",
+      "id": "ad03f81b-594f-4587-9f70-a2b23af50cc8",
       "name": "If"
+    },
+    {
+      "parameters": {
+        "url": "http://[YOUR_PIHOLE_PRIMARY_IP]/api/domains/deny/exact",
+        "method": "POST",
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"domain\": \"{{ $json.data.id }}\",\n  \"groups\": [0],\n  \"comment\": \"n8n Security\"\n}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Pihole-Authentication",
+              "value": "[YOUR_PIHOLE_MAIN_TOKEN]"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "X-Pihole-Sudo",
+              "value": "true"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        40,
+        -120
+      ],
+      "id": "6b61974f-3fe7-410f-b84f-2b6b901cf626",
+      "name": "Block Main"
+    },
+    {
+      "parameters": {
+        "url": "http://[YOUR_PIHOLE_SECONDARY_IP]/api/domains/deny/exact",
+        "options": {},
+        "method": "POST",
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"domain\": \"{{ $json.data.id }}\",\n  \"groups\": [0],\n  \"comment\": \"n8n Security\"\n}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Pihole-Authentication",
+              "value": "[YOUR_PIHOLE_BACKUP_TOKEN]"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "X-Pihole-Sudo",
+              "value": "true"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        40,
+        40
+      ],
+      "id": "0077e098-f119-4dce-9e6d-884aea8fb81e",
+      "name": "Block Backup"
+    },
+    {
+      "parameters": {
+        "jsCode": "const d = $json.data || {};\nconst domain = d.id || \"unknown\";\nconst vt = d.attributes?.last_analysis_stats?.malicious || 0;\nconst geo = (()=>{try{return $(\"GeoIP Normalize\").all()}catch(e){return[]}})().find(i => i.json.domain === domain)?.json || {};\nconst loc = (()=>{try{return $(\"Filter Unique & Clean\").all()}catch(e){return[]}})().find(i => i.json.domain === domain)?.json || {};\nconst en  = (()=>{try{return $(\"Local Enrich\").all()}catch(e){return[]}})().find(i => i.json.domain === domain)?.json || {};\nconst rd  = (()=>{try{return $(\"RDAP Normalize\").all()}catch(e){return[]}})().find(i => i.json.domain === domain)?.json || {};\nconst flags = [];\nif (en.dga_suspect) flags.push(\"DGA\");\nif (en.typosquat) flags.push(\"typosquat->\" + en.typosquat_target);\nif (en.punycode) flags.push(\"punycode\");\nif (rd.newly_registered) flags.push(\"new-domain(\" + rd.domain_age_days + \"d)\");\nconst msg = `Domain: ${domain}\\nVT detections: ${vt}\\nClient: ${loc.client || \"?\"}\\n`\n  + `Origin: ${geo.country_name || \"?\"} (${geo.asn_org || \"?\"})\\n`\n  + `Signals: ${flags.length ? flags.join(\", \") : \"none\"}`;\nconst content = `\ud83d\udee1\ufe0f **Domain Blocked: ${domain}**\\n\\`\\`\\`\\n${msg}\\n\\`\\`\\``;\nreturn [{ json: { title: `Blocked ${domain}`, message: msg, content } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        -120
+      ],
+      "id": "c5460513-2b12-4d3d-b2d4-33912b234df8",
+      "name": "Notify Prepare"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "[YOUR_DISCORD_WEBHOOK_URL]",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={ \"content\": {{ JSON.stringify($json.content) }} }",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        440,
+        -120
+      ],
+      "id": "cdd04be1-cac7-4915-a066-cf21cffcfb37",
+      "name": "Notify Discord",
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -347,11 +587,108 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        -464,
-        192
+        240,
+        200
       ],
-      "id": "0604b0cf-2261-40c1-bb60-1b489044b65b",
+      "id": "729910a0-b493-4137-93d2-cbdd3f972864",
       "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "function esc(v) { return String(v).replace(/[ ,=]/g, \"\\\\$&\"); }\nfunction q(v) { return '\"' + String(v).replace(/\"/g, '\\\\\"') + '\"'; }\n// Safe reach-back: returns [] if a node didn't run this execution (avoids \"hasn't been executed\")\nfunction nodeItems(name) { try { return $(name).all(); } catch (e) { return []; } }\n\nreturn $input.all().map(item => {\n  const data = item.json;\n  const domain = data.domain || data.data?.id || data.indicator || \"unknown\";\n  if (domain === \"unknown\") return null;\n\n  const vt = data.data?.attributes?.last_analysis_stats?.malicious || 0;\n  const av = nodeItems(\"AlienVault Scan\").find(i =>\n    i.json.indicator === domain || i.json.domain === domain);\n  const pulses = av?.json?.pulse_info?.count || 0;\n  const en  = nodeItems(\"Local Enrich\").find(i => i.json.domain === domain)?.json || {};\n  const geo = nodeItems(\"GeoIP Normalize\").find(i => i.json.domain === domain)?.json || {};\n  const rd  = nodeItems(\"RDAP Normalize\").find(i => i.json.domain === domain)?.json || {};\n\n  const blocked = vt >= 5;\n  const verdict = blocked ? \"malicious\"\n    : (vt > 0 || pulses > 0 || en.dga_suspect || en.typosquat || en.punycode || rd.newly_registered)\n      ? \"suspicious\" : \"clean\";\n  const agreement = (vt > 0 && pulses > 0) ? \"both\"\n    : (vt > 0) ? \"vt_only\" : (pulses > 0) ? \"otx_only\" : \"neither\";\n\n  const tag = (k, v) => k + \"=\" + esc((v === undefined || v === null || v === \"\") ? \"unknown\" : v);\n  const tags = [\n    tag(\"domain\", domain),\n    tag(\"client\", en.client),\n    tag(\"country\", geo.country),\n    tag(\"verdict\", verdict),\n    tag(\"agreement\", agreement),\n  ].join(\",\");\n\n  const fields = [\n    \"pulses=\" + pulses + \"i\",\n    \"vt_detections=\" + vt + \"i\",\n    \"blocked=\" + (blocked ? \"true\" : \"false\"),\n    \"entropy=\" + (en.entropy ?? 0),\n    \"domain_age_days=\" + (rd.domain_age_days ?? -1) + \"i\",\n    \"dga_suspect=\" + (en.dga_suspect ? \"true\" : \"false\"),\n    \"typosquat=\" + (en.typosquat ? \"true\" : \"false\"),\n    \"punycode=\" + (en.punycode ? \"true\" : \"false\"),\n    \"newly_registered=\" + (rd.newly_registered ? \"true\" : \"false\"),\n    \"asn_org=\" + q(geo.asn_org || \"unknown\"),\n  ].join(\",\");\n\n  return { json: { line: `domain_threats,${tags} ${fields} ${Date.now()}` } };\n}).filter(Boolean);"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        200
+      ],
+      "id": "1c187d49-9b09-4f36-b8fc-8887c914cc70",
+      "name": "Prepare Influx Data"
+    },
+    {
+      "parameters": {
+        "url": "http://[YOUR_INFLUXDB_IP]:8086/api/v2/write?org=[YOUR_ORG_NAME]&bucket=[YOUR_BUCKET_NAME]&precision=ms",
+        "options": {},
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "body": "={{ $json.line }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth"
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        640,
+        200
+      ],
+      "id": "b475fe19-c887-4b97-bd5d-e3e55576703d",
+      "name": "Push to InfluxDB"
+    },
+    {
+      "parameters": {
+        "url": "http://[YOUR_PIHOLE_SECONDARY_IP]/api/queries",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "from",
+              "value": "={{ Math.floor(Date.now() / 1000) - 300 }}"
+            },
+            {
+              "name": "length",
+              "value": "5000"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -2600,
+        200
+      ],
+      "id": "48d75e1c-6f79-4533-b5eb-2e7b8806bddb",
+      "name": "Get Pi-hole Logs 202",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "queries",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -2400,
+        200
+      ],
+      "id": "6cd85060-69c4-4736-9068-ad8dd06bf5fb",
+      "name": "Split Out 202"
+    },
+    {
+      "parameters": {
+        "numberInputs": 2
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -2300,
+        100
+      ],
+      "id": "512b20e7-cf22-4ca2-a9c4-c7b5f8b9dfa5",
+      "name": "Merge Logs"
     }
   ],
   "connections": {
@@ -359,7 +696,34 @@
       "main": [
         [
           {
+            "node": "VT Quota Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "VT Quota Check": {
+      "main": [
+        [
+          {
+            "node": "VT Quota Parse",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "VT Quota Parse": {
+      "main": [
+        [
+          {
             "node": "Get Pi-hole Logs",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Pi-hole Logs 202",
             "type": "main",
             "index": 0
           }
@@ -381,7 +745,7 @@
       "main": [
         [
           {
-            "node": "Filter Unique & Clean",
+            "node": "Merge Logs",
             "type": "main",
             "index": 0
           }
@@ -389,6 +753,17 @@
       ]
     },
     "Filter Unique & Clean": {
+      "main": [
+        [
+          {
+            "node": "Local Enrich",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Local Enrich": {
       "main": [
         [
           {
@@ -415,7 +790,25 @@
         [],
         [
           {
+            "node": "Under VT Quota?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Under VT Quota?": {
+      "main": [
+        [
+          {
             "node": "AlienVault Scan",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log Deferred",
             "type": "main",
             "index": 0
           }
@@ -433,33 +826,11 @@
         ]
       ]
     },
-    "VirusTotal Scan": {
-      "main": [
-        [
-          {
-            "node": "If",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Prepare Influx Data": {
-      "main": [
-        [
-          {
-            "node": "Push to InfluxDB",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Has Pulse?": {
       "main": [
         [
           {
-            "node": "VirusTotal Scan",
+            "node": "GeoIP Lookup",
             "type": "main",
             "index": 0
           }
@@ -473,11 +844,81 @@
         ]
       ]
     },
+    "GeoIP Lookup": {
+      "main": [
+        [
+          {
+            "node": "GeoIP Normalize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GeoIP Normalize": {
+      "main": [
+        [
+          {
+            "node": "RDAP Lookup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RDAP Lookup": {
+      "main": [
+        [
+          {
+            "node": "RDAP Normalize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RDAP Normalize": {
+      "main": [
+        [
+          {
+            "node": "VirusTotal Scan",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "VirusTotal Scan": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Log VT Usage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "If": {
       "main": [
         [
           {
-            "node": "Block Domain",
+            "node": "Block Main",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Block Backup",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Notify Prepare",
             "type": "main",
             "index": 0
           },
@@ -496,6 +937,17 @@
         ]
       ]
     },
+    "Notify Prepare": {
+      "main": [
+        [
+          {
+            "node": "Notify Discord",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "Merge": {
       "main": [
         [
@@ -506,6 +958,54 @@
           }
         ]
       ]
+    },
+    "Prepare Influx Data": {
+      "main": [
+        [
+          {
+            "node": "Push to InfluxDB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Pi-hole Logs 202": {
+      "main": [
+        [
+          {
+            "node": "Split Out 202",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out 202": {
+      "main": [
+        [
+          {
+            "node": "Merge Logs",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Logs": {
+      "main": [
+        [
+          {
+            "node": "Filter Unique & Clean",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "pihole-threat-detector-v2"
   }
 }

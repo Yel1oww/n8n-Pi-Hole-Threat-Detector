@@ -503,7 +503,8 @@
             }
           ]
         },
-        "options": {}
+        "options": {},
+        "sendBody": true
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
@@ -537,7 +538,8 @@
               "value": "true"
             }
           ]
-        }
+        },
+        "sendBody": true
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,

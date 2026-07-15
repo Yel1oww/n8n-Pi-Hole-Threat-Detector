@@ -3,20 +3,20 @@
     {
       "kind": "AnnotationQuery",
       "spec": {
-        "builtIn": true,
+        "query": {
+          "kind": "DataQuery",
+          "group": "grafana",
+          "version": "v0",
+          "datasource": {
+            "name": "-- Grafana --"
+          },
+          "spec": {}
+        },
         "enable": true,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
         "name": "Annotations & Alerts",
-        "query": {
-          "datasource": {
-            "name": "-- Grafana --"
-          },
-          "group": "grafana",
-          "kind": "DataQuery",
-          "spec": {},
-          "version": "v0"
-        }
+        "builtIn": true
       }
     }
   ],
@@ -26,6 +26,10 @@
     "panel-1": {
       "kind": "Panel",
       "spec": {
+        "id": 1,
+        "title": "\ud83d\udd0d Domains Scanned",
+        "description": "Total number of domains scanned in the selected time range",
+        "links": [],
         "data": {
           "kind": "QueryGroup",
           "spec": {
@@ -33,53 +37,31 @@
               {
                 "kind": "PanelQuery",
                 "spec": {
-                  "hidden": false,
                   "query": {
-                    "datasource": {
-                      "name": "dfh15f3un7doga"
-                    },
-                    "group": "influxdb",
                     "kind": "DataQuery",
-                    "spec": {
-                      "query": "from(bucket: \"AI\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"domain_threats\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"blocked\")\r\n  |> count()\r\n  |> group()\r\n  |> sum(column: \"_value\")"
+                    "group": "influxdb",
+                    "version": "v0",
+                    "datasource": {
+                      "name": "[YOUR_INFLUXDB_DATASOURCE_UID]"
                     },
-                    "version": "v0"
+                    "spec": {
+                      "query": "from(bucket: \"[YOUR_BUCKET_NAME]\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"domain_threats\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"blocked\")\r\n  |> count()\r\n  |> group()\r\n  |> sum(column: \"_value\")"
+                    }
                   },
-                  "refId": "A"
+                  "refId": "A",
+                  "hidden": false
                 }
               }
             ],
-            "queryOptions": {},
-            "transformations": []
+            "transformations": [],
+            "queryOptions": {}
           }
         },
-        "description": "Total number of domains scanned in the selected time range",
-        "id": 1,
-        "links": [],
-        "title": "🔍 Domains Scanned",
         "vizConfig": {
-          "group": "stat",
           "kind": "VizConfig",
+          "group": "stat",
+          "version": "13.1.0",
           "spec": {
-            "fieldConfig": {
-              "defaults": {
-                "color": {
-                  "fixedColor": "#00b4d8",
-                  "mode": "fixed"
-                },
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "#00b4d8",
-                      "value": 0
-                    }
-                  ]
-                },
-                "unit": "short"
-              },
-              "overrides": []
-            },
             "options": {
               "colorMode": "background",
               "graphMode": "area",
@@ -96,15 +78,37 @@
               "showPercentChange": false,
               "textMode": "auto",
               "wideLayout": true
+            },
+            "fieldConfig": {
+              "defaults": {
+                "unit": "short",
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "value": 0,
+                      "color": "#00b4d8"
+                    }
+                  ]
+                },
+                "color": {
+                  "mode": "fixed",
+                  "fixedColor": "#00b4d8"
+                }
+              },
+              "overrides": []
             }
-          },
-          "version": "13.0.1+security-01"
+          }
         }
       }
     },
     "panel-10": {
       "kind": "Panel",
       "spec": {
+        "id": 10,
+        "title": "\ud83d\udce1 OTX Pulse Activity Over Time",
+        "description": "AlienVault OTX pulse activity over time \u2014 spikes indicate coordinated threat campaigns",
+        "links": [],
         "data": {
           "kind": "QueryGroup",
           "spec": {
@@ -112,39 +116,69 @@
               {
                 "kind": "PanelQuery",
                 "spec": {
-                  "hidden": false,
                   "query": {
-                    "datasource": {
-                      "name": "dfh15f3un7doga"
-                    },
-                    "group": "influxdb",
                     "kind": "DataQuery",
-                    "spec": {
-                      "query": "from(bucket: \"AI\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"domain_threats\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"pulses\")\r\n  |> filter(fn: (r) => r[\"_value\"] > 0)\r\n  |> group()\r\n  |> aggregateWindow(every: v.windowPeriod, fn: sum, createEmpty: false)\r\n  |> yield(name: \"Pulse Activity\")"
+                    "group": "influxdb",
+                    "version": "v0",
+                    "datasource": {
+                      "name": "[YOUR_INFLUXDB_DATASOURCE_UID]"
                     },
-                    "version": "v0"
+                    "spec": {
+                      "query": "from(bucket: \"[YOUR_BUCKET_NAME]\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"domain_threats\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"pulses\")\r\n  |> filter(fn: (r) => r[\"_value\"] > 0)\r\n  |> group()\r\n  |> aggregateWindow(every: v.windowPeriod, fn: sum, createEmpty: false)\r\n  |> yield(name: \"Pulse Activity\")"
+                    }
                   },
-                  "refId": "A"
+                  "refId": "A",
+                  "hidden": false
                 }
               }
             ],
-            "queryOptions": {},
-            "transformations": []
+            "transformations": [],
+            "queryOptions": {}
           }
         },
-        "description": "AlienVault OTX pulse activity over time — spikes indicate coordinated threat campaigns",
-        "id": 10,
-        "links": [],
-        "title": "📡 OTX Pulse Activity Over Time",
         "vizConfig": {
-          "group": "timeseries",
           "kind": "VizConfig",
+          "group": "timeseries",
+          "version": "13.1.0",
           "spec": {
+            "options": {
+              "annotations": {
+                "clustering": -1,
+                "multiLane": false
+              },
+              "legend": {
+                "calcs": [],
+                "displayMode": "hidden",
+                "enableFacetedFilter": false,
+                "overflow": "ellipsis",
+                "placement": "bottom",
+                "showLegend": false
+              },
+              "tooltip": {
+                "hideZeros": false,
+                "mode": "single",
+                "sort": "none"
+              }
+            },
             "fieldConfig": {
               "defaults": {
+                "unit": "short",
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "value": 0,
+                      "color": "green"
+                    },
+                    {
+                      "value": 80,
+                      "color": "red"
+                    }
+                  ]
+                },
                 "color": {
-                  "fixedColor": "#7209b7",
-                  "mode": "fixed"
+                  "mode": "fixed",
+                  "fixedColor": "#7209b7"
                 },
                 "custom": {
                   "axisBorderShow": false,
@@ -182,49 +216,21 @@
                   "thresholdsStyle": {
                     "mode": "off"
                   }
-                },
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": 0
-                    },
-                    {
-                      "color": "red",
-                      "value": 80
-                    }
-                  ]
-                },
-                "unit": "short"
+                }
               },
               "overrides": []
-            },
-            "options": {
-              "annotations": {
-                "clustering": -1,
-                "multiLane": false
-              },
-              "legend": {
-                "calcs": [],
-                "displayMode": "hidden",
-                "placement": "bottom",
-                "showLegend": false
-              },
-              "tooltip": {
-                "hideZeros": false,
-                "mode": "single",
-                "sort": "none"
-              }
             }
-          },
-          "version": "13.0.1+security-01"
+          }
         }
       }
     },
     "panel-2": {
       "kind": "Panel",
       "spec": {
+        "id": 2,
+        "title": "\ud83d\udeab Threats Blocked",
+        "description": "Total domains blocked as threats",
+        "links": [],
         "data": {
           "kind": "QueryGroup",
           "spec": {
@@ -232,60 +238,31 @@
               {
                 "kind": "PanelQuery",
                 "spec": {
-                  "hidden": false,
                   "query": {
-                    "datasource": {
-                      "name": "dfh15f3un7doga"
-                    },
-                    "group": "influxdb",
                     "kind": "DataQuery",
-                    "spec": {
-                      "query": "from(bucket: \"AI\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"domain_threats\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"blocked\" and (r[\"_value\"] == true or r[\"_value\"] == \"true\"))\r\n  |> group()\r\n  |> count()"
+                    "group": "influxdb",
+                    "version": "v0",
+                    "datasource": {
+                      "name": "[YOUR_INFLUXDB_DATASOURCE_UID]"
                     },
-                    "version": "v0"
+                    "spec": {
+                      "query": "from(bucket: \"[YOUR_BUCKET_NAME]\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"domain_threats\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"blocked\" and (r[\"_value\"] == true or r[\"_value\"] == \"true\"))\r\n  |> group()\r\n  |> count()"
+                    }
                   },
-                  "refId": "A"
+                  "refId": "A",
+                  "hidden": false
                 }
               }
             ],
-            "queryOptions": {},
-            "transformations": []
+            "transformations": [],
+            "queryOptions": {}
           }
         },
-        "description": "Total domains blocked as threats",
-        "id": 2,
-        "links": [],
-        "title": "🚫 Threats Blocked",
         "vizConfig": {
-          "group": "stat",
           "kind": "VizConfig",
+          "group": "stat",
+          "version": "13.1.0",
           "spec": {
-            "fieldConfig": {
-              "defaults": {
-                "color": {
-                  "mode": "thresholds"
-                },
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": 0
-                    },
-                    {
-                      "color": "orange",
-                      "value": 1
-                    },
-                    {
-                      "color": "red",
-                      "value": 10
-                    }
-                  ]
-                },
-                "unit": "short"
-              },
-              "overrides": []
-            },
             "options": {
               "colorMode": "background",
               "graphMode": "area",
@@ -302,15 +279,44 @@
               "showPercentChange": false,
               "textMode": "auto",
               "wideLayout": true
+            },
+            "fieldConfig": {
+              "defaults": {
+                "unit": "short",
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "value": 0,
+                      "color": "green"
+                    },
+                    {
+                      "value": 1,
+                      "color": "orange"
+                    },
+                    {
+                      "value": 10,
+                      "color": "red"
+                    }
+                  ]
+                },
+                "color": {
+                  "mode": "thresholds"
+                }
+              },
+              "overrides": []
             }
-          },
-          "version": "13.0.1+security-01"
+          }
         }
       }
     },
     "panel-3": {
       "kind": "Panel",
       "spec": {
+        "id": 3,
+        "title": "\ud83d\udccb Threat Intelligence Log",
+        "description": "Full threat intelligence log \u2014 all scanned domains with their metadata",
+        "links": [],
         "data": {
           "kind": "QueryGroup",
           "spec": {
@@ -318,58 +324,69 @@
               {
                 "kind": "PanelQuery",
                 "spec": {
-                  "hidden": false,
                   "query": {
-                    "datasource": {
-                      "name": "dfh15f3un7doga"
-                    },
-                    "group": "influxdb",
                     "kind": "DataQuery",
-                    "spec": {
-                      "query": "from(bucket: \"AI\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"domain_threats\")\r\n  |> pivot(rowKey:[\"_time\", \"domain\"], columnKey: [\"_field\"], valueColumn: \"_value\")\r\n  |> group()\r\n  |> sort(columns: [\"_time\"], desc: true)\r\n  |> keep(columns: [\"_time\", \"domain\", \"blocked\", \"pulses\", \"vt_detections\"])"
+                    "group": "influxdb",
+                    "version": "v0",
+                    "datasource": {
+                      "name": "[YOUR_INFLUXDB_DATASOURCE_UID]"
                     },
-                    "version": "v0"
+                    "spec": {
+                      "query": "from(bucket: \"[YOUR_BUCKET_NAME]\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"domain_threats\")\r\n  |> filter(fn: (r) => not (r[\"domain\"] == \"isabellepotel.fr\" and r[\"_time\"] >= 2026-05-03T02:55:05Z and r[\"_time\"] <= 2026-05-03T02:55:20Z))\r\n  |> pivot(rowKey:[\"_time\", \"domain\"], columnKey: [\"_field\"], valueColumn: \"_value\")\r\n  |> group()\r\n  |> sort(columns: [\"_time\"], desc: true)\r\n  |> keep(columns: [\"_time\", \"domain\", \"blocked\", \"pulses\", \"vt_detections\"])"
+                    }
                   },
-                  "refId": "A"
+                  "refId": "A",
+                  "hidden": false
                 }
               }
             ],
-            "queryOptions": {},
-            "transformations": []
+            "transformations": [],
+            "queryOptions": {}
           }
         },
-        "description": "Full threat intelligence log — all scanned domains with their metadata",
-        "id": 3,
-        "links": [],
-        "title": "📋 Threat Intelligence Log",
         "vizConfig": {
-          "group": "table",
           "kind": "VizConfig",
+          "group": "table",
+          "version": "13.1.0",
           "spec": {
+            "options": {
+              "cellHeight": "sm",
+              "enablePagination": true,
+              "frameIndex": 1,
+              "showHeader": true,
+              "sortBy": [
+                {
+                  "desc": true,
+                  "displayName": "VT Score"
+                }
+              ]
+            },
             "fieldConfig": {
               "defaults": {
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "value": 0,
+                      "color": "green"
+                    },
+                    {
+                      "value": 80,
+                      "color": "red"
+                    }
+                  ]
+                },
                 "custom": {
                   "align": "auto",
                   "cellOptions": {
                     "type": "auto"
                   },
                   "footer": {
-                    "reducers": []
+                    "reducers": [
+                      "count"
+                    ]
                   },
                   "inspect": false
-                },
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": 0
-                    },
-                    {
-                      "color": "red",
-                      "value": 80
-                    }
-                  ]
                 }
               },
               "overrides": [
@@ -394,12 +411,12 @@
                             "false": {
                               "color": "green",
                               "index": 1,
-                              "text": "✅ Clean"
+                              "text": "\u2705 Clean"
                             },
                             "true": {
                               "color": "red",
                               "index": 0,
-                              "text": "🚫 BLOCKED"
+                              "text": "\ud83d\udeab BLOCKED"
                             }
                           },
                           "type": "value"
@@ -524,34 +541,18 @@
                   ]
                 }
               ]
-            },
-            "options": {
-              "cellHeight": "sm",
-              "footer": {
-                "enablePagination": true,
-                "fields": "",
-                "reducer": [
-                  "count"
-                ],
-                "show": true
-              },
-              "frameIndex": 1,
-              "showHeader": true,
-              "sortBy": [
-                {
-                  "desc": true,
-                  "displayName": "VT Score"
-                }
-              ]
             }
-          },
-          "version": "13.0.1+security-01"
+          }
         }
       }
     },
     "panel-5": {
       "kind": "Panel",
       "spec": {
+        "id": 5,
+        "title": "\u26a0\ufe0f Threat Rate",
+        "description": "Percentage of scanned domains identified as threats",
+        "links": [],
         "data": {
           "kind": "QueryGroup",
           "spec": {
@@ -559,66 +560,31 @@
               {
                 "kind": "PanelQuery",
                 "spec": {
-                  "hidden": false,
                   "query": {
-                    "datasource": {
-                      "name": "dfh15f3un7doga"
-                    },
-                    "group": "influxdb",
                     "kind": "DataQuery",
-                    "spec": {
-                      "query": "total = from(bucket: \"AI\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"domain_threats\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"blocked\")\r\n  |> group()\r\n  |> count()\r\n\r\nblocked = from(bucket: \"AI\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"domain_threats\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"blocked\")\r\n  |> filter(fn: (r) => r[\"_value\"] == true)\r\n  |> group()\r\n  |> count()\r\n\r\njoin(tables: {total: total, blocked: blocked}, on: [\"_stop\"])\r\n  |> map(fn: (r) => ({_value: float(v: r._value_blocked) / float(v: r._value_total) * 100.0}))"
+                    "group": "influxdb",
+                    "version": "v0",
+                    "datasource": {
+                      "name": "[YOUR_INFLUXDB_DATASOURCE_UID]"
                     },
-                    "version": "v0"
+                    "spec": {
+                      "query": "total = from(bucket: \"[YOUR_BUCKET_NAME]\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"domain_threats\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"blocked\")\r\n  |> group()\r\n  |> count()\r\n\r\nblocked = from(bucket: \"[YOUR_BUCKET_NAME]\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"domain_threats\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"blocked\")\r\n  |> filter(fn: (r) => r[\"_value\"] == true)\r\n  |> group()\r\n  |> count()\r\n\r\njoin(tables: {total: total, blocked: blocked}, on: [\"_stop\"])\r\n  |> map(fn: (r) => ({_value: float(v: r._value_blocked) / float(v: r._value_total) * 100.0}))"
+                    }
                   },
-                  "refId": "A"
+                  "refId": "A",
+                  "hidden": false
                 }
               }
             ],
-            "queryOptions": {},
-            "transformations": []
+            "transformations": [],
+            "queryOptions": {}
           }
         },
-        "description": "Percentage of scanned domains identified as threats",
-        "id": 5,
-        "links": [],
-        "title": "⚠️ Threat Rate",
         "vizConfig": {
-          "group": "gauge",
           "kind": "VizConfig",
+          "group": "gauge",
+          "version": "13.1.0",
           "spec": {
-            "fieldConfig": {
-              "defaults": {
-                "color": {
-                  "mode": "thresholds"
-                },
-                "max": 100,
-                "min": 0,
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": 0
-                    },
-                    {
-                      "color": "yellow",
-                      "value": 5
-                    },
-                    {
-                      "color": "orange",
-                      "value": 15
-                    },
-                    {
-                      "color": "red",
-                      "value": 30
-                    }
-                  ]
-                },
-                "unit": "percent"
-              },
-              "overrides": []
-            },
             "options": {
               "barShape": "flat",
               "barWidthFactor": 0.5,
@@ -646,15 +612,50 @@
               "sizing": "auto",
               "sparkline": true,
               "textMode": "auto"
+            },
+            "fieldConfig": {
+              "defaults": {
+                "unit": "percent",
+                "min": 0,
+                "max": 100,
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "value": 0,
+                      "color": "green"
+                    },
+                    {
+                      "value": 5,
+                      "color": "yellow"
+                    },
+                    {
+                      "value": 15,
+                      "color": "orange"
+                    },
+                    {
+                      "value": 30,
+                      "color": "red"
+                    }
+                  ]
+                },
+                "color": {
+                  "mode": "thresholds"
+                }
+              },
+              "overrides": []
             }
-          },
-          "version": "13.0.1+security-01"
+          }
         }
       }
     },
     "panel-6": {
       "kind": "Panel",
       "spec": {
+        "id": 6,
+        "title": "\ud83e\udda0 Max VT Score",
+        "description": "Highest VirusTotal detection score seen in this period",
+        "links": [],
         "data": {
           "kind": "QueryGroup",
           "spec": {
@@ -662,64 +663,31 @@
               {
                 "kind": "PanelQuery",
                 "spec": {
-                  "hidden": false,
                   "query": {
-                    "datasource": {
-                      "name": "dfh15f3un7doga"
-                    },
-                    "group": "influxdb",
                     "kind": "DataQuery",
-                    "spec": {
-                      "query": "from(bucket: \"AI\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"domain_threats\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"vt_detections\")\r\n  |> max()\r\n  |> group()\r\n  |> max(column: \"_value\")"
+                    "group": "influxdb",
+                    "version": "v0",
+                    "datasource": {
+                      "name": "[YOUR_INFLUXDB_DATASOURCE_UID]"
                     },
-                    "version": "v0"
+                    "spec": {
+                      "query": "from(bucket: \"[YOUR_BUCKET_NAME]\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"domain_threats\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"vt_detections\")\r\n  |> max()\r\n  |> group()\r\n  |> max(column: \"_value\")"
+                    }
                   },
-                  "refId": "A"
+                  "refId": "A",
+                  "hidden": false
                 }
               }
             ],
-            "queryOptions": {},
-            "transformations": []
+            "transformations": [],
+            "queryOptions": {}
           }
         },
-        "description": "Highest VirusTotal detection score seen in this period",
-        "id": 6,
-        "links": [],
-        "title": "🦠 Max VT Score",
         "vizConfig": {
-          "group": "stat",
           "kind": "VizConfig",
+          "group": "stat",
+          "version": "13.1.0",
           "spec": {
-            "fieldConfig": {
-              "defaults": {
-                "color": {
-                  "mode": "thresholds"
-                },
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": 0
-                    },
-                    {
-                      "color": "yellow",
-                      "value": 3
-                    },
-                    {
-                      "color": "orange",
-                      "value": 10
-                    },
-                    {
-                      "color": "red",
-                      "value": 25
-                    }
-                  ]
-                },
-                "unit": "short"
-              },
-              "overrides": []
-            },
             "options": {
               "colorMode": "background",
               "graphMode": "none",
@@ -736,15 +704,48 @@
               "showPercentChange": false,
               "textMode": "auto",
               "wideLayout": true
+            },
+            "fieldConfig": {
+              "defaults": {
+                "unit": "short",
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "value": 0,
+                      "color": "green"
+                    },
+                    {
+                      "value": 3,
+                      "color": "yellow"
+                    },
+                    {
+                      "value": 10,
+                      "color": "orange"
+                    },
+                    {
+                      "value": 25,
+                      "color": "red"
+                    }
+                  ]
+                },
+                "color": {
+                  "mode": "thresholds"
+                }
+              },
+              "overrides": []
             }
-          },
-          "version": "13.0.1+security-01"
+          }
         }
       }
     },
     "panel-7": {
       "kind": "Panel",
       "spec": {
+        "id": 7,
+        "title": "\ud83d\udcc8 Blocked vs. Scanned Over Time",
+        "description": "Threats blocked vs. total domains scanned over time",
+        "links": [],
         "data": {
           "kind": "QueryGroup",
           "spec": {
@@ -752,54 +753,84 @@
               {
                 "kind": "PanelQuery",
                 "spec": {
-                  "hidden": false,
                   "query": {
-                    "datasource": {
-                      "name": "dfh15f3un7doga"
-                    },
-                    "group": "influxdb",
                     "kind": "DataQuery",
-                    "spec": {
-                      "query": "from(bucket: \"AI\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"domain_threats\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"blocked\" and (r[\"_value\"] == true or r[\"_value\"] == \"true\"))\r\n  |> group()\r\n  |> aggregateWindow(every: v.windowPeriod, fn: count, createEmpty: true)\r\n  |> yield(name: \"Blocked Threats\")"
+                    "group": "influxdb",
+                    "version": "v0",
+                    "datasource": {
+                      "name": "[YOUR_INFLUXDB_DATASOURCE_UID]"
                     },
-                    "version": "v0"
+                    "spec": {
+                      "query": "from(bucket: \"[YOUR_BUCKET_NAME]\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"domain_threats\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"blocked\" and (r[\"_value\"] == true or r[\"_value\"] == \"true\"))\r\n  |> group()\r\n  |> aggregateWindow(every: v.windowPeriod, fn: count, createEmpty: true)\r\n  |> yield(name: \"Blocked Threats\")"
+                    }
                   },
-                  "refId": "A"
+                  "refId": "A",
+                  "hidden": false
                 }
               },
               {
                 "kind": "PanelQuery",
                 "spec": {
-                  "hidden": false,
                   "query": {
-                    "datasource": {
-                      "name": "dfh15f3un7doga"
-                    },
-                    "group": "influxdb",
                     "kind": "DataQuery",
-                    "spec": {
-                      "query": "from(bucket: \"AI\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"domain_threats\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"blocked\")\r\n  |> group()\r\n  |> aggregateWindow(every: v.windowPeriod, fn: count, createEmpty: true)\r\n  |> yield(name: \"Total Scanned\")"
+                    "group": "influxdb",
+                    "version": "v0",
+                    "datasource": {
+                      "name": "[YOUR_INFLUXDB_DATASOURCE_UID]"
                     },
-                    "version": "v0"
+                    "spec": {
+                      "query": "from(bucket: \"[YOUR_BUCKET_NAME]\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"domain_threats\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"blocked\")\r\n  |> group()\r\n  |> aggregateWindow(every: v.windowPeriod, fn: count, createEmpty: true)\r\n  |> yield(name: \"Total Scanned\")"
+                    }
                   },
-                  "refId": "B"
+                  "refId": "B",
+                  "hidden": false
                 }
               }
             ],
-            "queryOptions": {},
-            "transformations": []
+            "transformations": [],
+            "queryOptions": {}
           }
         },
-        "description": "Threats blocked vs. total domains scanned over time",
-        "id": 7,
-        "links": [],
-        "title": "📈 Blocked vs. Scanned Over Time",
         "vizConfig": {
-          "group": "timeseries",
           "kind": "VizConfig",
+          "group": "timeseries",
+          "version": "13.1.0",
           "spec": {
+            "options": {
+              "annotations": {
+                "clustering": -1,
+                "multiLane": false
+              },
+              "legend": {
+                "calcs": [],
+                "displayMode": "list",
+                "enableFacetedFilter": false,
+                "overflow": "ellipsis",
+                "placement": "bottom",
+                "showLegend": true
+              },
+              "tooltip": {
+                "hideZeros": false,
+                "mode": "multi",
+                "sort": "desc"
+              }
+            },
             "fieldConfig": {
               "defaults": {
+                "unit": "short",
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "value": 0,
+                      "color": "green"
+                    },
+                    {
+                      "value": 80,
+                      "color": "red"
+                    }
+                  ]
+                },
                 "color": {
                   "mode": "palette-classic"
                 },
@@ -836,21 +867,7 @@
                   "thresholdsStyle": {
                     "mode": "off"
                   }
-                },
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": 0
-                    },
-                    {
-                      "color": "red",
-                      "value": 80
-                    }
-                  ]
-                },
-                "unit": "short"
+                }
               },
               "overrides": [
                 {
@@ -892,32 +909,18 @@
                   ]
                 }
               ]
-            },
-            "options": {
-              "annotations": {
-                "clustering": -1,
-                "multiLane": false
-              },
-              "legend": {
-                "calcs": [],
-                "displayMode": "list",
-                "placement": "bottom",
-                "showLegend": true
-              },
-              "tooltip": {
-                "hideZeros": false,
-                "mode": "multi",
-                "sort": "desc"
-              }
             }
-          },
-          "version": "13.0.1+security-01"
+          }
         }
       }
     },
     "panel-8": {
       "kind": "Panel",
       "spec": {
+        "id": 8,
+        "title": "\ud83c\udfaf Top 10 Most Malicious Domains",
+        "description": "Top 10 most detected domains by VirusTotal score",
+        "links": [],
         "data": {
           "kind": "QueryGroup",
           "spec": {
@@ -925,36 +928,75 @@
               {
                 "kind": "PanelQuery",
                 "spec": {
-                  "hidden": false,
                   "query": {
-                    "datasource": {
-                      "name": "dfh15f3un7doga"
-                    },
-                    "group": "influxdb",
                     "kind": "DataQuery",
-                    "spec": {
-                      "query": "from(bucket: \"AI\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"domain_threats\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"vt_detections\")\r\n  |> filter(fn: (r) => r[\"_value\"] > 0)\r\n  |> group(columns: [\"domain\"])\r\n  |> max()\r\n  |> group()\r\n  |> sort(columns: [\"_value\"], desc: true)\r\n  |> limit(n: 10)"
+                    "group": "influxdb",
+                    "version": "v0",
+                    "datasource": {
+                      "name": "[YOUR_INFLUXDB_DATASOURCE_UID]"
                     },
-                    "version": "v0"
+                    "spec": {
+                      "query": "from(bucket: \"[YOUR_BUCKET_NAME]\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"domain_threats\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"vt_detections\")\r\n  |> filter(fn: (r) => r[\"_value\"] > 0)\r\n  |> group(columns: [\"domain\"])\r\n  |> max()\r\n  |> group()\r\n  |> sort(columns: [\"_value\"], desc: true)\r\n  |> limit(n: 10)"
+                    }
                   },
-                  "refId": "A"
+                  "refId": "A",
+                  "hidden": false
                 }
               }
             ],
-            "queryOptions": {},
-            "transformations": []
+            "transformations": [],
+            "queryOptions": {}
           }
         },
-        "description": "Top 10 most detected domains by VirusTotal score",
-        "id": 8,
-        "links": [],
-        "title": "🎯 Top 10 Most Malicious Domains",
         "vizConfig": {
-          "group": "barchart",
           "kind": "VizConfig",
+          "group": "barchart",
+          "version": "13.1.0",
           "spec": {
+            "options": {
+              "barRadius": 0,
+              "barWidth": 0.7,
+              "fullHighlight": false,
+              "groupWidth": 0.7,
+              "legend": {
+                "calcs": [],
+                "displayMode": "hidden",
+                "overflow": "ellipsis",
+                "placement": "bottom",
+                "showLegend": false
+              },
+              "orientation": "horizontal",
+              "showValue": "auto",
+              "stacking": "none",
+              "tooltip": {
+                "hideZeros": false,
+                "mode": "single",
+                "sort": "none"
+              },
+              "xField": "domain",
+              "xTickLabelRotation": 0,
+              "xTickLabelSpacing": 0
+            },
             "fieldConfig": {
               "defaults": {
+                "unit": "short",
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "value": 0,
+                      "color": "yellow"
+                    },
+                    {
+                      "value": 10,
+                      "color": "orange"
+                    },
+                    {
+                      "value": 25,
+                      "color": "red"
+                    }
+                  ]
+                },
                 "color": {
                   "mode": "thresholds"
                 },
@@ -978,59 +1020,21 @@
                   "thresholdsStyle": {
                     "mode": "off"
                   }
-                },
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "yellow",
-                      "value": 0
-                    },
-                    {
-                      "color": "orange",
-                      "value": 10
-                    },
-                    {
-                      "color": "red",
-                      "value": 25
-                    }
-                  ]
-                },
-                "unit": "short"
+                }
               },
               "overrides": []
-            },
-            "options": {
-              "barRadius": 0,
-              "barWidth": 0.7,
-              "fullHighlight": false,
-              "groupWidth": 0.7,
-              "legend": {
-                "calcs": [],
-                "displayMode": "hidden",
-                "placement": "bottom",
-                "showLegend": false
-              },
-              "orientation": "horizontal",
-              "showValue": "auto",
-              "stacking": "none",
-              "tooltip": {
-                "hideZeros": false,
-                "mode": "single",
-                "sort": "none"
-              },
-              "xField": "domain",
-              "xTickLabelRotation": 0,
-              "xTickLabelSpacing": 0
             }
-          },
-          "version": "13.0.1+security-01"
+          }
         }
       }
     },
     "panel-9": {
       "kind": "Panel",
       "spec": {
+        "id": 9,
+        "title": "\ud83d\udd34 Severity Distribution",
+        "description": "Breakdown of threats by VT detection severity tier",
+        "links": [],
         "data": {
           "kind": "QueryGroup",
           "spec": {
@@ -1038,38 +1042,62 @@
               {
                 "kind": "PanelQuery",
                 "spec": {
-                  "hidden": false,
                   "query": {
-                    "datasource": {
-                      "name": "dfh15f3un7doga"
-                    },
-                    "group": "influxdb",
                     "kind": "DataQuery",
-                    "spec": {
-                      "query": "from(bucket: \"AI\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"domain_threats\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"vt_detections\")\r\n  |> group()\r\n  |> reduce(\r\n      fn: (r, accumulator) => ({\r\n        Clean:    accumulator.Clean    + (if r[\"_value\"] == 0                         then 1 else 0),\r\n        Low:      accumulator.Low      + (if r[\"_value\"] > 0  and r[\"_value\"] <= 5  then 1 else 0),\r\n        Medium:   accumulator.Medium   + (if r[\"_value\"] > 5  and r[\"_value\"] <= 15 then 1 else 0),\r\n        High:     accumulator.High     + (if r[\"_value\"] > 15 and r[\"_value\"] <= 30 then 1 else 0),\r\n        Critical: accumulator.Critical + (if r[\"_value\"] > 30                        then 1 else 0)\r\n      }),\r\n      identity: {Clean: 0, Low: 0, Medium: 0, High: 0, Critical: 0}\r\n    )\r\n  |> drop(columns: [\"_start\", \"_stop\", \"_time\"])"
+                    "group": "influxdb",
+                    "version": "v0",
+                    "datasource": {
+                      "name": "[YOUR_INFLUXDB_DATASOURCE_UID]"
                     },
-                    "version": "v0"
+                    "spec": {
+                      "query": "from(bucket: \"[YOUR_BUCKET_NAME]\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"domain_threats\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"vt_detections\")\r\n  |> group()\r\n  |> reduce(\r\n      fn: (r, accumulator) => ({\r\n        Clean:    accumulator.Clean    + (if r[\"_value\"] == 0                         then 1 else 0),\r\n        Low:      accumulator.Low      + (if r[\"_value\"] > 0  and r[\"_value\"] <= 5  then 1 else 0),\r\n        Medium:   accumulator.Medium   + (if r[\"_value\"] > 5  and r[\"_value\"] <= 15 then 1 else 0),\r\n        High:     accumulator.High     + (if r[\"_value\"] > 15 and r[\"_value\"] <= 30 then 1 else 0),\r\n        Critical: accumulator.Critical + (if r[\"_value\"] > 30                        then 1 else 0)\r\n      }),\r\n      identity: {Clean: 0, Low: 0, Medium: 0, High: 0, Critical: 0}\r\n    )\r\n  |> drop(columns: [\"_start\", \"_stop\", \"_time\"])"
+                    }
                   },
-                  "refId": "A"
+                  "refId": "A",
+                  "hidden": false
                 }
               }
             ],
-            "queryOptions": {},
-            "transformations": []
+            "transformations": [],
+            "queryOptions": {}
           }
         },
-        "description": "Breakdown of threats by VT detection severity tier",
-        "id": 9,
-        "links": [],
-        "title": "🔴 Severity Distribution",
         "vizConfig": {
-          "group": "piechart",
           "kind": "VizConfig",
+          "group": "piechart",
+          "version": "13.1.0",
           "spec": {
+            "options": {
+              "legend": {
+                "displayMode": "table",
+                "overflow": "ellipsis",
+                "placement": "right",
+                "showLegend": true,
+                "values": [
+                  "value",
+                  "percent"
+                ]
+              },
+              "pieType": "donut",
+              "reduceOptions": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "fields": "",
+                "values": false
+              },
+              "sort": "desc",
+              "tooltip": {
+                "hideZeros": false,
+                "mode": "single",
+                "sort": "none"
+              }
+            },
             "fieldConfig": {
               "defaults": {
                 "color": {
-                  "mode": "palette-classic"
+                  "mode": "palette-classic",
+                  "fixedColor": "#73BF69"
                 },
                 "custom": {
                   "hideFrom": {
@@ -1156,10 +1184,139 @@
                   ]
                 }
               ]
+            }
+          }
+        }
+      }
+    },
+    "panel-13": {
+      "kind": "Panel",
+      "spec": {
+        "id": 13,
+        "title": "\ud83c\udf9f\ufe0f VT API Quota (Today)",
+        "description": "VirusTotal lookups spent today vs the free 500/day cap",
+        "links": [],
+        "data": {
+          "kind": "QueryGroup",
+          "spec": {
+            "queries": [
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "query": {
+                    "kind": "DataQuery",
+                    "group": "influxdb",
+                    "version": "v0",
+                    "datasource": {
+                      "name": "[YOUR_INFLUXDB_DATASOURCE_UID]"
+                    },
+                    "spec": {
+                      "query": "import \"date\"\nfrom(bucket: \"[YOUR_BUCKET_NAME]\")\n  |> range(start: date.truncate(t: now(), unit: 1d))\n  |> filter(fn: (r) => r._measurement == \"vt_usage\" and r._field == \"lookup\")\n  |> sum()"
+                    }
+                  },
+                  "refId": "A",
+                  "hidden": false
+                }
+              }
+            ],
+            "transformations": [],
+            "queryOptions": {}
+          }
+        },
+        "vizConfig": {
+          "kind": "VizConfig",
+          "group": "gauge",
+          "version": "13.1.0",
+          "spec": {
+            "options": {
+              "minVizHeight": 75,
+              "minVizWidth": 75,
+              "orientation": "auto",
+              "reduceOptions": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "fields": "",
+                "values": false
+              },
+              "showThresholdLabels": false,
+              "showThresholdMarkers": true,
+              "sizing": "auto"
             },
+            "fieldConfig": {
+              "defaults": {
+                "unit": "short",
+                "min": 0,
+                "max": 500,
+                "color": {
+                  "mode": "thresholds"
+                },
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "value": 0,
+                      "color": "green"
+                    },
+                    {
+                      "value": 400,
+                      "color": "orange"
+                    },
+                    {
+                      "value": 480,
+                      "color": "red"
+                    }
+                  ]
+                }
+              },
+              "overrides": []
+            }
+          }
+        }
+      }
+    },
+    "panel-14": {
+      "kind": "Panel",
+      "spec": {
+        "id": 14,
+        "title": "\ud83e\udd1d Feed Agreement",
+        "description": "Where VirusTotal and AlienVault OTX agree (both / vt_only / otx_only / neither)",
+        "links": [],
+        "data": {
+          "kind": "QueryGroup",
+          "spec": {
+            "queries": [
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "query": {
+                    "kind": "DataQuery",
+                    "group": "influxdb",
+                    "version": "v0",
+                    "datasource": {
+                      "name": "[YOUR_INFLUXDB_DATASOURCE_UID]"
+                    },
+                    "spec": {
+                      "query": "from(bucket: \"[YOUR_BUCKET_NAME]\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"domain_threats\" and r._field == \"vt_detections\")\n  |> group(columns: [\"agreement\"])\n  |> count()\n  |> group()\n  |> rename(columns: {agreement: \"feed\"})"
+                    }
+                  },
+                  "refId": "A",
+                  "hidden": false
+                }
+              }
+            ],
+            "transformations": [],
+            "queryOptions": {}
+          }
+        },
+        "vizConfig": {
+          "kind": "VizConfig",
+          "group": "piechart",
+          "version": "13.1.0",
+          "spec": {
             "options": {
               "legend": {
-                "displayMode": "table",
+                "displayMode": "list",
                 "placement": "right",
                 "showLegend": true,
                 "values": [
@@ -1173,17 +1330,505 @@
                   "lastNotNull"
                 ],
                 "fields": "",
+                "values": true
+              },
+              "tooltip": {
+                "mode": "single",
+                "sort": "desc",
+                "hideZeros": false
+              }
+            },
+            "fieldConfig": {
+              "defaults": {
+                "unit": "short",
+                "color": {
+                  "mode": "palette-classic"
+                },
+                "custom": {
+                  "hideFrom": {
+                    "legend": false,
+                    "tooltip": false,
+                    "viz": false
+                  }
+                }
+              },
+              "overrides": []
+            }
+          }
+        }
+      }
+    },
+    "panel-11": {
+      "kind": "Panel",
+      "spec": {
+        "id": 11,
+        "title": "\ud83d\udda5\ufe0f Top Offending Clients",
+        "description": "Devices generating the most blocked-domain hits (primary client per domain)",
+        "links": [],
+        "data": {
+          "kind": "QueryGroup",
+          "spec": {
+            "queries": [
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "query": {
+                    "kind": "DataQuery",
+                    "group": "influxdb",
+                    "version": "v0",
+                    "datasource": {
+                      "name": "[YOUR_INFLUXDB_DATASOURCE_UID]"
+                    },
+                    "spec": {
+                      "query": "from(bucket: \"[YOUR_BUCKET_NAME]\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"domain_threats\" and r._field == \"blocked\")\n  |> filter(fn: (r) => r._value == true)\n  |> group(columns: [\"client\"])\n  |> count()\n  |> group()\n  |> sort(columns: [\"_value\"], desc: true)\n  |> limit(n: 10)"
+                    }
+                  },
+                  "refId": "A",
+                  "hidden": false
+                }
+              }
+            ],
+            "transformations": [],
+            "queryOptions": {}
+          }
+        },
+        "vizConfig": {
+          "kind": "VizConfig",
+          "group": "barchart",
+          "version": "13.1.0",
+          "spec": {
+            "options": {
+              "barRadius": 0,
+              "barWidth": 0.7,
+              "fullHighlight": false,
+              "groupWidth": 0.7,
+              "legend": {
+                "calcs": [],
+                "displayMode": "hidden",
+                "placement": "bottom",
+                "showLegend": false
+              },
+              "orientation": "horizontal",
+              "showValue": "auto",
+              "stacking": "none",
+              "tooltip": {
+                "mode": "single",
+                "sort": "none",
+                "hideZeros": false
+              },
+              "xField": "client",
+              "xTickLabelRotation": 0,
+              "xTickLabelSpacing": 0
+            },
+            "fieldConfig": {
+              "defaults": {
+                "unit": "short",
+                "color": {
+                  "mode": "continuous-BlPu"
+                },
+                "custom": {
+                  "axisBorderShow": false,
+                  "axisCenteredZero": false,
+                  "axisColorMode": "text",
+                  "axisLabel": "",
+                  "axisPlacement": "auto",
+                  "fillOpacity": 80,
+                  "gradientMode": "none",
+                  "hideFrom": {
+                    "legend": false,
+                    "tooltip": false,
+                    "viz": false
+                  },
+                  "lineWidth": 1,
+                  "scaleDistribution": {
+                    "type": "linear"
+                  },
+                  "thresholdsStyle": {
+                    "mode": "off"
+                  }
+                }
+              },
+              "overrides": []
+            }
+          }
+        }
+      }
+    },
+    "panel-15": {
+      "kind": "Panel",
+      "spec": {
+        "id": 15,
+        "title": "\u23f1\ufe0f Threat Timeline",
+        "description": "Blocked domains over time",
+        "links": [],
+        "data": {
+          "kind": "QueryGroup",
+          "spec": {
+            "queries": [
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "query": {
+                    "kind": "DataQuery",
+                    "group": "influxdb",
+                    "version": "v0",
+                    "datasource": {
+                      "name": "[YOUR_INFLUXDB_DATASOURCE_UID]"
+                    },
+                    "spec": {
+                      "query": "from(bucket: \"[YOUR_BUCKET_NAME]\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"domain_threats\" and r._field == \"blocked\")\n  |> map(fn: (r) => ({r with _value: if r._value then 1 else 0}))\n  |> aggregateWindow(every: v.windowPeriod, fn: sum, createEmpty: true)\n  |> map(fn: (r) => ({r with _field: \"blocked\"}))"
+                    }
+                  },
+                  "refId": "A",
+                  "hidden": false
+                }
+              }
+            ],
+            "transformations": [],
+            "queryOptions": {}
+          }
+        },
+        "vizConfig": {
+          "kind": "VizConfig",
+          "group": "timeseries",
+          "version": "13.1.0",
+          "spec": {
+            "options": {
+              "legend": {
+                "calcs": [],
+                "displayMode": "list",
+                "placement": "bottom",
+                "showLegend": false
+              },
+              "tooltip": {
+                "mode": "single",
+                "sort": "none",
+                "hideZeros": false
+              }
+            },
+            "fieldConfig": {
+              "defaults": {
+                "unit": "short",
+                "color": {
+                  "mode": "thresholds"
+                },
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "value": 0,
+                      "color": "green"
+                    },
+                    {
+                      "value": 1,
+                      "color": "red"
+                    }
+                  ]
+                },
+                "custom": {
+                  "axisBorderShow": false,
+                  "axisCenteredZero": false,
+                  "axisColorMode": "text",
+                  "axisLabel": "",
+                  "axisPlacement": "auto",
+                  "barAlignment": 0,
+                  "drawStyle": "bars",
+                  "fillOpacity": 70,
+                  "gradientMode": "none",
+                  "lineInterpolation": "linear",
+                  "lineWidth": 1,
+                  "pointSize": 5,
+                  "scaleDistribution": {
+                    "type": "linear"
+                  },
+                  "showPoints": "auto",
+                  "spanNulls": false,
+                  "stacking": {
+                    "group": "A",
+                    "mode": "none"
+                  },
+                  "thresholdsStyle": {
+                    "mode": "off"
+                  },
+                  "hideFrom": {
+                    "legend": false,
+                    "tooltip": false,
+                    "viz": false
+                  }
+                }
+              },
+              "overrides": []
+            }
+          }
+        }
+      }
+    },
+    "panel-16": {
+      "kind": "Panel",
+      "spec": {
+        "id": 16,
+        "title": "\ud83e\uddec Heuristic Signals",
+        "description": "Local detections requiring no API budget",
+        "links": [],
+        "data": {
+          "kind": "QueryGroup",
+          "spec": {
+            "queries": [
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "query": {
+                    "kind": "DataQuery",
+                    "group": "influxdb",
+                    "version": "v0",
+                    "datasource": {
+                      "name": "[YOUR_INFLUXDB_DATASOURCE_UID]"
+                    },
+                    "spec": {
+                      "query": "from(bucket: \"[YOUR_BUCKET_NAME]\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"domain_threats\" and r._field == \"dga_suspect\")\n  |> map(fn: (r) => ({r with _value: if r._value then 1 else 0}))\n  |> group()\n  |> sum()\n  |> map(fn: (r) => ({r with _field: \"dga_suspect\"}))"
+                    }
+                  },
+                  "refId": "A",
+                  "hidden": false
+                }
+              },
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "query": {
+                    "kind": "DataQuery",
+                    "group": "influxdb",
+                    "version": "v0",
+                    "datasource": {
+                      "name": "[YOUR_INFLUXDB_DATASOURCE_UID]"
+                    },
+                    "spec": {
+                      "query": "from(bucket: \"[YOUR_BUCKET_NAME]\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"domain_threats\" and r._field == \"typosquat\")\n  |> map(fn: (r) => ({r with _value: if r._value then 1 else 0}))\n  |> group()\n  |> sum()\n  |> map(fn: (r) => ({r with _field: \"typosquat\"}))"
+                    }
+                  },
+                  "refId": "B",
+                  "hidden": false
+                }
+              },
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "query": {
+                    "kind": "DataQuery",
+                    "group": "influxdb",
+                    "version": "v0",
+                    "datasource": {
+                      "name": "[YOUR_INFLUXDB_DATASOURCE_UID]"
+                    },
+                    "spec": {
+                      "query": "from(bucket: \"[YOUR_BUCKET_NAME]\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"domain_threats\" and r._field == \"punycode\")\n  |> map(fn: (r) => ({r with _value: if r._value then 1 else 0}))\n  |> group()\n  |> sum()\n  |> map(fn: (r) => ({r with _field: \"punycode\"}))"
+                    }
+                  },
+                  "refId": "C",
+                  "hidden": false
+                }
+              },
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "query": {
+                    "kind": "DataQuery",
+                    "group": "influxdb",
+                    "version": "v0",
+                    "datasource": {
+                      "name": "[YOUR_INFLUXDB_DATASOURCE_UID]"
+                    },
+                    "spec": {
+                      "query": "from(bucket: \"[YOUR_BUCKET_NAME]\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"domain_threats\" and r._field == \"newly_registered\")\n  |> map(fn: (r) => ({r with _value: if r._value then 1 else 0}))\n  |> group()\n  |> sum()\n  |> map(fn: (r) => ({r with _field: \"newly_registered\"}))"
+                    }
+                  },
+                  "refId": "D",
+                  "hidden": false
+                }
+              }
+            ],
+            "transformations": [],
+            "queryOptions": {}
+          }
+        },
+        "vizConfig": {
+          "kind": "VizConfig",
+          "group": "stat",
+          "version": "13.1.0",
+          "spec": {
+            "options": {
+              "colorMode": "background",
+              "graphMode": "none",
+              "justifyMode": "auto",
+              "orientation": "horizontal",
+              "reduceOptions": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "fields": "",
                 "values": false
               },
-              "sort": "desc",
-              "tooltip": {
-                "hideZeros": false,
-                "mode": "single",
-                "sort": "none"
-              }
+              "textMode": "value_and_name",
+              "wideLayout": true,
+              "showPercentChange": false,
+              "percentChangeColorMode": "standard"
+            },
+            "fieldConfig": {
+              "defaults": {
+                "unit": "short",
+                "color": {
+                  "mode": "fixed",
+                  "fixedColor": "purple"
+                },
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "value": 0,
+                      "color": "purple"
+                    }
+                  ]
+                },
+                "noValue": "0"
+              },
+              "overrides": []
             }
-          },
-          "version": "13.0.1+security-01"
+          }
+        }
+      }
+    },
+    "panel-12": {
+      "kind": "Panel",
+      "spec": {
+        "id": 12,
+        "title": "\ud83c\udf0d Geo Threat Map",
+        "description": "Countries where VirusTotal flagged at least one domain (vt_detections > 0)",
+        "links": [],
+        "data": {
+          "kind": "QueryGroup",
+          "spec": {
+            "queries": [
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "query": {
+                    "kind": "DataQuery",
+                    "group": "influxdb",
+                    "version": "v0",
+                    "datasource": {
+                      "name": "[YOUR_INFLUXDB_DATASOURCE_UID]"
+                    },
+                    "spec": {
+                      "query": "from(bucket: \"[YOUR_BUCKET_NAME]\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"domain_threats\" and r._field == \"vt_detections\")\n  |> filter(fn: (r) => r._value > 0)\n  |> group(columns: [\"country\"])\n  |> count()\n  |> group()\n  |> rename(columns: {country: \"countryCode\"})"
+                    }
+                  },
+                  "refId": "A",
+                  "hidden": false
+                }
+              }
+            ],
+            "transformations": [],
+            "queryOptions": {}
+          }
+        },
+        "vizConfig": {
+          "kind": "VizConfig",
+          "group": "geomap",
+          "version": "13.1.0",
+          "spec": {
+            "options": {
+              "basemap": {
+                "config": {},
+                "name": "Layer 0",
+                "type": "default"
+              },
+              "controls": {
+                "mouseWheelZoom": true,
+                "showAttribution": true,
+                "showDebug": false,
+                "showMeasure": false,
+                "showScale": false,
+                "showZoom": true
+              },
+              "layers": [
+                {
+                  "config": {
+                    "showLegend": true,
+                    "style": {
+                      "color": {
+                        "fixed": "dark-red"
+                      },
+                      "opacity": 0.7,
+                      "size": {
+                        "field": "_value",
+                        "fixed": 5,
+                        "max": 30,
+                        "min": 4
+                      },
+                      "symbol": {
+                        "fixed": "img/icons/marker/circle.svg",
+                        "mode": "fixed"
+                      },
+                      "textConfig": {
+                        "fontSize": 12,
+                        "offsetX": 0,
+                        "offsetY": 0,
+                        "textAlign": "center",
+                        "textBaseline": "middle"
+                      }
+                    }
+                  },
+                  "location": {
+                    "gazetteer": "public/gazetteer/countries.json",
+                    "lookup": "countryCode",
+                    "mode": "lookup"
+                  },
+                  "name": "Threats",
+                  "tooltip": true,
+                  "type": "markers"
+                }
+              ],
+              "tooltip": {
+                "mode": "details"
+              },
+              "view": {
+                "allLayers": true,
+                "id": "zero",
+                "lat": 20,
+                "lon": 0,
+                "zoom": 1.5
+              }
+            },
+            "fieldConfig": {
+              "defaults": {
+                "unit": "short",
+                "color": {
+                  "mode": "thresholds"
+                },
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "value": 0,
+                      "color": "green"
+                    },
+                    {
+                      "value": 5,
+                      "color": "red"
+                    }
+                  ]
+                },
+                "custom": {
+                  "hideFrom": {
+                    "legend": false,
+                    "tooltip": false,
+                    "viz": false
+                  }
+                }
+              },
+              "overrides": []
+            }
+          }
         }
       }
     }
@@ -1195,118 +1840,196 @@
         {
           "kind": "GridLayoutItem",
           "spec": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 4,
             "element": {
               "kind": "ElementReference",
               "name": "panel-1"
-            },
-            "height": 4,
-            "width": 6,
-            "x": 0,
-            "y": 0
+            }
           }
         },
         {
           "kind": "GridLayoutItem",
           "spec": {
+            "x": 6,
+            "y": 0,
+            "width": 6,
+            "height": 4,
             "element": {
               "kind": "ElementReference",
               "name": "panel-2"
-            },
-            "height": 4,
-            "width": 6,
-            "x": 6,
-            "y": 0
+            }
           }
         },
         {
           "kind": "GridLayoutItem",
           "spec": {
+            "x": 12,
+            "y": 0,
+            "width": 6,
+            "height": 4,
             "element": {
               "kind": "ElementReference",
               "name": "panel-5"
-            },
-            "height": 4,
-            "width": 6,
-            "x": 12,
-            "y": 0
+            }
           }
         },
         {
           "kind": "GridLayoutItem",
           "spec": {
+            "x": 18,
+            "y": 0,
+            "width": 6,
+            "height": 4,
             "element": {
               "kind": "ElementReference",
               "name": "panel-6"
-            },
-            "height": 4,
-            "width": 6,
-            "x": 18,
-            "y": 0
+            }
           }
         },
         {
           "kind": "GridLayoutItem",
           "spec": {
+            "x": 0,
+            "y": 4,
+            "width": 24,
+            "height": 8,
             "element": {
               "kind": "ElementReference",
               "name": "panel-7"
-            },
-            "height": 8,
-            "width": 24,
-            "x": 0,
-            "y": 4
+            }
           }
         },
         {
           "kind": "GridLayoutItem",
           "spec": {
+            "x": 0,
+            "y": 12,
+            "width": 12,
+            "height": 10,
             "element": {
               "kind": "ElementReference",
               "name": "panel-8"
-            },
-            "height": 10,
-            "width": 12,
-            "x": 0,
-            "y": 12
+            }
           }
         },
         {
           "kind": "GridLayoutItem",
           "spec": {
+            "x": 12,
+            "y": 12,
+            "width": 12,
+            "height": 10,
             "element": {
               "kind": "ElementReference",
               "name": "panel-9"
-            },
-            "height": 10,
-            "width": 12,
-            "x": 12,
-            "y": 12
+            }
           }
         },
         {
           "kind": "GridLayoutItem",
           "spec": {
+            "x": 0,
+            "y": 22,
+            "width": 24,
+            "height": 8,
             "element": {
               "kind": "ElementReference",
               "name": "panel-10"
-            },
-            "height": 8,
-            "width": 24,
-            "x": 0,
-            "y": 22
+            }
           }
         },
         {
           "kind": "GridLayoutItem",
           "spec": {
+            "x": 0,
+            "y": 30,
+            "width": 24,
+            "height": 14,
             "element": {
               "kind": "ElementReference",
               "name": "panel-3"
-            },
-            "height": 14,
-            "width": 24,
+            }
+          }
+        },
+        {
+          "kind": "GridLayoutItem",
+          "spec": {
             "x": 0,
-            "y": 30
+            "y": 44,
+            "width": 6,
+            "height": 8,
+            "element": {
+              "kind": "ElementReference",
+              "name": "panel-13"
+            }
+          }
+        },
+        {
+          "kind": "GridLayoutItem",
+          "spec": {
+            "x": 6,
+            "y": 44,
+            "width": 6,
+            "height": 8,
+            "element": {
+              "kind": "ElementReference",
+              "name": "panel-14"
+            }
+          }
+        },
+        {
+          "kind": "GridLayoutItem",
+          "spec": {
+            "x": 12,
+            "y": 44,
+            "width": 12,
+            "height": 8,
+            "element": {
+              "kind": "ElementReference",
+              "name": "panel-11"
+            }
+          }
+        },
+        {
+          "kind": "GridLayoutItem",
+          "spec": {
+            "x": 0,
+            "y": 52,
+            "width": 24,
+            "height": 4,
+            "element": {
+              "kind": "ElementReference",
+              "name": "panel-16"
+            }
+          }
+        },
+        {
+          "kind": "GridLayoutItem",
+          "spec": {
+            "x": 0,
+            "y": 56,
+            "width": 12,
+            "height": 9,
+            "element": {
+              "kind": "ElementReference",
+              "name": "panel-15"
+            }
+          }
+        },
+        {
+          "kind": "GridLayoutItem",
+          "spec": {
+            "x": 12,
+            "y": 56,
+            "width": 12,
+            "height": 9,
+            "element": {
+              "kind": "ElementReference",
+              "name": "panel-12"
+            }
           }
         }
       ]
@@ -1324,6 +2047,9 @@
     "otx"
   ],
   "timeSettings": {
+    "timezone": "browser",
+    "from": "now-6h",
+    "to": "now",
     "autoRefresh": "5m",
     "autoRefreshIntervals": [
       "5s",
@@ -1337,12 +2063,9 @@
       "2h",
       "1d"
     ],
-    "fiscalYearStartMonth": 0,
-    "from": "now-6h",
     "hideTimepicker": false,
-    "timezone": "browser",
-    "to": "now"
+    "fiscalYearStartMonth": 0
   },
-  "title": "🛡️ DNS Threat Intelligence",
+  "title": "\ud83d\udee1\ufe0f DNS Threat Intelligence",
   "variables": []
 }

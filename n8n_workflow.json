@@ -113,7 +113,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Build a domain -> {client counts} map so we keep attribution, not just the domain.\nconst counts = {};\nfor (const it of $input.all()) {\n  const q = it.json;\n  let d = (q.domain || \"\").toLowerCase().trim();\n  if (!d || d === \"unknown\" || d.includes(\".arpa\")) continue;\n  // Pi-hole v6 client is an object {ip,name}; fall back to string\n  let c = \"unknown\";\n  if (q.client && typeof q.client === \"object\") c = q.client.name || q.client.ip || \"unknown\";\n  else if (typeof q.client === \"string\") c = q.client;\n  counts[d] = counts[d] || {};\n  counts[d][c] = (counts[d][c] || 0) + 1;\n}\nreturn Object.keys(counts).map(d => {\n  const byClient = counts[d];\n  const primary = Object.keys(byClient).sort((a, b) => byClient[b] - byClient[a])[0];\n  return { json: { domain: d, client: primary, client_count: Object.keys(byClient).length } };\n});"
+        "jsCode": "// Build a domain -> {client counts} map so we keep attribution, not just the domain.\n// Client preference: friendly name > IP > \"unknown\". Never drop the IP when no name exists.\nfunction clientLabel(q) {\n  const c = q.client;\n  if (c && typeof c === \"object\") {\n    const name = (c.name || \"\").trim();\n    const ip = (c.ip || \"\").trim();\n    if (name && name.toLowerCase() !== \"unknown\") return name;\n    if (ip) return ip;                      // <-- fall back to the IP\n    return \"unknown\";\n  }\n  if (typeof c === \"string\" && c.trim()) return c.trim();\n  // some Pi-hole shapes expose these instead\n  if (q.client_ip) return String(q.client_ip);\n  if (q.clientIP) return String(q.clientIP);\n  return \"unknown\";\n}\n\nconst counts = {};\nfor (const it of $input.all()) {\n  const q = it.json;\n  let d = (q.domain || \"\").toLowerCase().trim();\n  if (!d || d === \"unknown\" || d.includes(\".arpa\")) continue;\n  const c = clientLabel(q);\n  counts[d] = counts[d] || {};\n  counts[d][c] = (counts[d][c] || 0) + 1;\n}\nreturn Object.keys(counts).map(d => {\n  const byClient = counts[d];\n  // prefer the most frequent NON-unknown client\n  const keys = Object.keys(byClient).sort((a, b) => byClient[b] - byClient[a]);\n  const named = keys.filter(k => k !== \"unknown\");\n  const primary = (named.length ? named[0] : keys[0]) || \"unknown\";\n  return { json: { domain: d, client: primary, client_count: keys.length } };\n});"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -332,7 +332,7 @@
     },
     {
       "parameters": {
-        "url": "=http://ip-api.com/json/{{ $('Filter Unique & Clean').item.json.domain }}?fields=status,country,countryCode,as,org,query",
+        "url": "=http://ip-api.com/json/{{ $json.indicator }}?fields=status,country,countryCode,as,org,query",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -347,7 +347,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// GeoIP Lookup's INPUT item (from \"Has Pulse?\") still carries the AlienVault json,\n// whose `indicator` is the domain. Read the geo from this node's own input ($json),\n// and the domain from the item that entered GeoIP Lookup.\nconst j = $input.first().json || {};\nlet domain = j.query || \"unknown\";\ntry {\n  const src = $(\"Has Pulse?\").first().json;\n  domain = src.indicator || src.domain || domain;\n} catch (e) {}\nlet asn = \"\", asn_org = j.org || \"\";\nif (j.as) { const m = j.as.match(/^(AS\\d+)\\s*(.*)$/); if (m) { asn = m[1]; asn_org = asn_org || m[2]; } }\nreturn [{ json: { domain, country: j.countryCode || \"??\", country_name: j.country || \"Unknown\",\n  asn, asn_org: (asn_org || \"unknown\") } }];"
+        "jsCode": "// This node's own input ($json) is the ip-api response. NOTE: j.query is the RESOLVED IP,\n// not the domain \u2014 never use it as the domain or the join in Prepare Influx Data breaks.\nconst j = $input.first().json || {};\nlet domain = \"unknown\";\ntry {\n  const src = $(\"Has Pulse?\").first().json;\n  domain = src.indicator || src.domain || \"unknown\";\n} catch (e) {}\nlet asn = \"\", asn_org = j.org || \"\";\nif (j.as) { const m = j.as.match(/^(AS\\d+)\\s*(.*)$/); if (m) { asn = m[1]; asn_org = asn_org || m[2]; } }\nreturn [{ json: {\n  domain,\n  country: j.countryCode || \"unknown\",     // ISO code for the gazetteer; \"unknown\" if absent\n  country_name: j.country || \"Unknown\",\n  asn,\n  asn_org: (asn_org || \"unknown\"),\n  resolved_ip: j.query || \"\"               // keep the IP, but in its own field\n} }];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -388,7 +388,7 @@
     },
     {
       "parameters": {
-        "url": "=https://www.virustotal.com/api/v3/domains/{{ $('Filter Unique & Clean').item.json.domain }}",
+        "url": "=https://www.virustotal.com/api/v3/domains/{{ $json.domain }}",
         "options": {
           "batching": {
             "batch": {

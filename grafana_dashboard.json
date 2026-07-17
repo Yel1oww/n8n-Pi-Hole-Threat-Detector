@@ -1585,7 +1585,7 @@
                       "name": "[YOUR_INFLUXDB_DATASOURCE_UID]"
                     },
                     "spec": {
-                      "query": "from(bucket: \"[YOUR_BUCKET_NAME]\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"domain_threats\" and r._field == \"dga_suspect\")\n  |> map(fn: (r) => ({r with _value: if r._value then 1 else 0}))\n  |> group()\n  |> sum()\n  |> map(fn: (r) => ({r with _field: \"dga_suspect\"}))"
+                      "query": "from(bucket: \"[YOUR_BUCKET_NAME]\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"domain_threats\" and r._field == \"dga_suspect\")\n  |> map(fn: (r) => ({r with _value: if r._value then 1 else 0}))\n  |> group()\n  |> sum()\n  |> set(key: \"_field\", value: \"dga_suspect\")\n  |> keep(columns: [\"_value\", \"_field\"])\n  |> yield(name: \"dga_suspect\")"
                     }
                   },
                   "refId": "A",
@@ -1603,7 +1603,7 @@
                       "name": "[YOUR_INFLUXDB_DATASOURCE_UID]"
                     },
                     "spec": {
-                      "query": "from(bucket: \"[YOUR_BUCKET_NAME]\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"domain_threats\" and r._field == \"typosquat\")\n  |> map(fn: (r) => ({r with _value: if r._value then 1 else 0}))\n  |> group()\n  |> sum()\n  |> map(fn: (r) => ({r with _field: \"typosquat\"}))"
+                      "query": "from(bucket: \"[YOUR_BUCKET_NAME]\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"domain_threats\" and r._field == \"typosquat\")\n  |> map(fn: (r) => ({r with _value: if r._value then 1 else 0}))\n  |> group()\n  |> sum()\n  |> set(key: \"_field\", value: \"typosquat\")\n  |> keep(columns: [\"_value\", \"_field\"])\n  |> yield(name: \"typosquat\")"
                     }
                   },
                   "refId": "B",
@@ -1621,7 +1621,7 @@
                       "name": "[YOUR_INFLUXDB_DATASOURCE_UID]"
                     },
                     "spec": {
-                      "query": "from(bucket: \"[YOUR_BUCKET_NAME]\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"domain_threats\" and r._field == \"punycode\")\n  |> map(fn: (r) => ({r with _value: if r._value then 1 else 0}))\n  |> group()\n  |> sum()\n  |> map(fn: (r) => ({r with _field: \"punycode\"}))"
+                      "query": "from(bucket: \"[YOUR_BUCKET_NAME]\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"domain_threats\" and r._field == \"punycode\")\n  |> map(fn: (r) => ({r with _value: if r._value then 1 else 0}))\n  |> group()\n  |> sum()\n  |> set(key: \"_field\", value: \"punycode\")\n  |> keep(columns: [\"_value\", \"_field\"])\n  |> yield(name: \"punycode\")"
                     }
                   },
                   "refId": "C",
@@ -1639,7 +1639,7 @@
                       "name": "[YOUR_INFLUXDB_DATASOURCE_UID]"
                     },
                     "spec": {
-                      "query": "from(bucket: \"[YOUR_BUCKET_NAME]\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"domain_threats\" and r._field == \"newly_registered\")\n  |> map(fn: (r) => ({r with _value: if r._value then 1 else 0}))\n  |> group()\n  |> sum()\n  |> map(fn: (r) => ({r with _field: \"newly_registered\"}))"
+                      "query": "from(bucket: \"[YOUR_BUCKET_NAME]\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"domain_threats\" and r._field == \"newly_registered\")\n  |> map(fn: (r) => ({r with _value: if r._value then 1 else 0}))\n  |> group()\n  |> sum()\n  |> set(key: \"_field\", value: \"newly_registered\")\n  |> keep(columns: [\"_value\", \"_field\"])\n  |> yield(name: \"newly_registered\")"
                     }
                   },
                   "refId": "D",
@@ -1657,10 +1657,10 @@
           "version": "13.1.0",
           "spec": {
             "options": {
-              "colorMode": "background",
+              "colorMode": "value",
               "graphMode": "none",
-              "justifyMode": "auto",
-              "orientation": "horizontal",
+              "justifyMode": "center",
+              "orientation": "vertical",
               "reduceOptions": {
                 "calcs": [
                   "lastNotNull"
@@ -1669,7 +1669,7 @@
                 "values": false
               },
               "textMode": "value_and_name",
-              "wideLayout": true,
+              "wideLayout": false,
               "showPercentChange": false,
               "percentChangeColorMode": "standard"
             },
@@ -1677,21 +1677,77 @@
               "defaults": {
                 "unit": "short",
                 "color": {
-                  "mode": "fixed",
-                  "fixedColor": "purple"
+                  "mode": "thresholds"
                 },
                 "thresholds": {
                   "mode": "absolute",
                   "steps": [
                     {
                       "value": 0,
-                      "color": "purple"
+                      "color": "green"
+                    },
+                    {
+                      "value": 1,
+                      "color": "orange"
+                    },
+                    {
+                      "value": 5,
+                      "color": "red"
                     }
                   ]
                 },
                 "noValue": "0"
               },
-              "overrides": []
+              "overrides": [
+                {
+                  "matcher": {
+                    "id": "byFrameRefID",
+                    "options": "A"
+                  },
+                  "properties": [
+                    {
+                      "id": "displayName",
+                      "value": "DGA Suspect"
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byFrameRefID",
+                    "options": "B"
+                  },
+                  "properties": [
+                    {
+                      "id": "displayName",
+                      "value": "Typosquat"
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byFrameRefID",
+                    "options": "C"
+                  },
+                  "properties": [
+                    {
+                      "id": "displayName",
+                      "value": "Punycode"
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byFrameRefID",
+                    "options": "D"
+                  },
+                  "properties": [
+                    {
+                      "id": "displayName",
+                      "value": "Newly Registered"
+                    }
+                  ]
+                }
+              ]
             }
           }
         }

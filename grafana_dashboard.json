@@ -1719,7 +1719,7 @@
                       "name": "[YOUR_INFLUXDB_DATASOURCE_UID]"
                     },
                     "spec": {
-                      "query": "from(bucket: \"[YOUR_BUCKET_NAME]\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"domain_threats\" and r._field == \"vt_detections\")\n  |> filter(fn: (r) => r._value > 0)\n  |> group(columns: [\"country\"])\n  |> count()\n  |> group()\n  |> rename(columns: {country: \"countryCode\"})"
+                      "query": "from(bucket: \"[YOUR_BUCKET_NAME]\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"domain_threats\" and r._field == \"vt_detections\")\n  |> filter(fn: (r) => r._value > 0)\n  |> filter(fn: (r) => r.country != \"unknown\" and r.country != \"??\" and r.country != \"\")\n  |> group(columns: [\"country\"])\n  |> count()\n  |> rename(columns: {country: \"countryCode\"})"
                     }
                   },
                   "refId": "A",

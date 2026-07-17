@@ -42,10 +42,10 @@
                     "group": "influxdb",
                     "version": "v0",
                     "datasource": {
-                      "name": "[YOUR_INFLUXDB_DATASOURCE_UID]"
+                      "name": "dfh15f3un7doga"
                     },
                     "spec": {
-                      "query": "from(bucket: \"[YOUR_BUCKET_NAME]\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"domain_threats\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"blocked\")\r\n  |> count()\r\n  |> group()\r\n  |> sum(column: \"_value\")"
+                      "query": "from(bucket: \"AI\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"domain_threats\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"blocked\")\r\n  |> count()\r\n  |> group()\r\n  |> sum(column: \"_value\")"
                     }
                   },
                   "refId": "A",
@@ -121,10 +121,10 @@
                     "group": "influxdb",
                     "version": "v0",
                     "datasource": {
-                      "name": "[YOUR_INFLUXDB_DATASOURCE_UID]"
+                      "name": "dfh15f3un7doga"
                     },
                     "spec": {
-                      "query": "from(bucket: \"[YOUR_BUCKET_NAME]\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"domain_threats\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"pulses\")\r\n  |> filter(fn: (r) => r[\"_value\"] > 0)\r\n  |> group()\r\n  |> aggregateWindow(every: v.windowPeriod, fn: sum, createEmpty: false)\r\n  |> yield(name: \"Pulse Activity\")"
+                      "query": "from(bucket: \"AI\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"domain_threats\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"pulses\")\r\n  |> filter(fn: (r) => r[\"_value\"] > 0)\r\n  |> group()\r\n  |> aggregateWindow(every: v.windowPeriod, fn: sum, createEmpty: false)\r\n  |> yield(name: \"Pulse Activity\")"
                     }
                   },
                   "refId": "A",
@@ -243,10 +243,10 @@
                     "group": "influxdb",
                     "version": "v0",
                     "datasource": {
-                      "name": "[YOUR_INFLUXDB_DATASOURCE_UID]"
+                      "name": "dfh15f3un7doga"
                     },
                     "spec": {
-                      "query": "from(bucket: \"[YOUR_BUCKET_NAME]\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"domain_threats\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"blocked\" and (r[\"_value\"] == true or r[\"_value\"] == \"true\"))\r\n  |> group()\r\n  |> count()"
+                      "query": "from(bucket: \"AI\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"domain_threats\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"blocked\" and (r[\"_value\"] == true or r[\"_value\"] == \"true\"))\r\n  |> group()\r\n  |> count()"
                     }
                   },
                   "refId": "A",
@@ -329,10 +329,10 @@
                     "group": "influxdb",
                     "version": "v0",
                     "datasource": {
-                      "name": "[YOUR_INFLUXDB_DATASOURCE_UID]"
+                      "name": "dfh15f3un7doga"
                     },
                     "spec": {
-                      "query": "from(bucket: \"[YOUR_BUCKET_NAME]\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"domain_threats\")\r\n  |> filter(fn: (r) => not (r[\"domain\"] == \"isabellepotel.fr\" and r[\"_time\"] >= 2026-05-03T02:55:05Z and r[\"_time\"] <= 2026-05-03T02:55:20Z))\r\n  |> pivot(rowKey:[\"_time\", \"domain\"], columnKey: [\"_field\"], valueColumn: \"_value\")\r\n  |> group()\r\n  |> sort(columns: [\"_time\"], desc: true)\r\n  |> keep(columns: [\"_time\", \"domain\", \"blocked\", \"pulses\", \"vt_detections\"])"
+                      "query": "from(bucket: \"AI\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"domain_threats\")\r\n  |> filter(fn: (r) => not (r[\"domain\"] == \"isabellepotel.fr\" and r[\"_time\"] >= 2026-05-03T02:55:05Z and r[\"_time\"] <= 2026-05-03T02:55:20Z))\r\n  |> pivot(rowKey:[\"_time\", \"domain\"], columnKey: [\"_field\"], valueColumn: \"_value\")\r\n  |> group()\r\n  |> sort(columns: [\"_time\"], desc: true)\r\n  |> keep(columns: [\"_time\", \"domain\", \"blocked\", \"pulses\", \"vt_detections\"])"
                     }
                   },
                   "refId": "A",
@@ -565,10 +565,10 @@
                     "group": "influxdb",
                     "version": "v0",
                     "datasource": {
-                      "name": "[YOUR_INFLUXDB_DATASOURCE_UID]"
+                      "name": "dfh15f3un7doga"
                     },
                     "spec": {
-                      "query": "total = from(bucket: \"[YOUR_BUCKET_NAME]\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"domain_threats\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"blocked\")\r\n  |> group()\r\n  |> count()\r\n\r\nblocked = from(bucket: \"[YOUR_BUCKET_NAME]\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"domain_threats\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"blocked\")\r\n  |> filter(fn: (r) => r[\"_value\"] == true)\r\n  |> group()\r\n  |> count()\r\n\r\njoin(tables: {total: total, blocked: blocked}, on: [\"_stop\"])\r\n  |> map(fn: (r) => ({_value: float(v: r._value_blocked) / float(v: r._value_total) * 100.0}))"
+                      "query": "total = from(bucket: \"AI\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"domain_threats\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"blocked\")\r\n  |> group()\r\n  |> count()\r\n\r\nblocked = from(bucket: \"AI\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"domain_threats\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"blocked\")\r\n  |> filter(fn: (r) => r[\"_value\"] == true)\r\n  |> group()\r\n  |> count()\r\n\r\njoin(tables: {total: total, blocked: blocked}, on: [\"_stop\"])\r\n  |> map(fn: (r) => ({_value: float(v: r._value_blocked) / float(v: r._value_total) * 100.0}))"
                     }
                   },
                   "refId": "A",
@@ -668,10 +668,10 @@
                     "group": "influxdb",
                     "version": "v0",
                     "datasource": {
-                      "name": "[YOUR_INFLUXDB_DATASOURCE_UID]"
+                      "name": "dfh15f3un7doga"
                     },
                     "spec": {
-                      "query": "from(bucket: \"[YOUR_BUCKET_NAME]\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"domain_threats\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"vt_detections\")\r\n  |> max()\r\n  |> group()\r\n  |> max(column: \"_value\")"
+                      "query": "from(bucket: \"AI\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"domain_threats\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"vt_detections\")\r\n  |> max()\r\n  |> group()\r\n  |> max(column: \"_value\")"
                     }
                   },
                   "refId": "A",
@@ -758,10 +758,10 @@
                     "group": "influxdb",
                     "version": "v0",
                     "datasource": {
-                      "name": "[YOUR_INFLUXDB_DATASOURCE_UID]"
+                      "name": "dfh15f3un7doga"
                     },
                     "spec": {
-                      "query": "from(bucket: \"[YOUR_BUCKET_NAME]\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"domain_threats\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"blocked\" and (r[\"_value\"] == true or r[\"_value\"] == \"true\"))\r\n  |> group()\r\n  |> aggregateWindow(every: v.windowPeriod, fn: count, createEmpty: true)\r\n  |> yield(name: \"Blocked Threats\")"
+                      "query": "from(bucket: \"AI\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"domain_threats\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"blocked\" and (r[\"_value\"] == true or r[\"_value\"] == \"true\"))\r\n  |> group()\r\n  |> aggregateWindow(every: v.windowPeriod, fn: count, createEmpty: true)\r\n  |> yield(name: \"Blocked Threats\")"
                     }
                   },
                   "refId": "A",
@@ -776,10 +776,10 @@
                     "group": "influxdb",
                     "version": "v0",
                     "datasource": {
-                      "name": "[YOUR_INFLUXDB_DATASOURCE_UID]"
+                      "name": "dfh15f3un7doga"
                     },
                     "spec": {
-                      "query": "from(bucket: \"[YOUR_BUCKET_NAME]\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"domain_threats\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"blocked\")\r\n  |> group()\r\n  |> aggregateWindow(every: v.windowPeriod, fn: count, createEmpty: true)\r\n  |> yield(name: \"Total Scanned\")"
+                      "query": "from(bucket: \"AI\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"domain_threats\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"blocked\")\r\n  |> group()\r\n  |> aggregateWindow(every: v.windowPeriod, fn: count, createEmpty: true)\r\n  |> yield(name: \"Total Scanned\")"
                     }
                   },
                   "refId": "B",
@@ -933,10 +933,10 @@
                     "group": "influxdb",
                     "version": "v0",
                     "datasource": {
-                      "name": "[YOUR_INFLUXDB_DATASOURCE_UID]"
+                      "name": "dfh15f3un7doga"
                     },
                     "spec": {
-                      "query": "from(bucket: \"[YOUR_BUCKET_NAME]\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"domain_threats\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"vt_detections\")\r\n  |> filter(fn: (r) => r[\"_value\"] > 0)\r\n  |> group(columns: [\"domain\"])\r\n  |> max()\r\n  |> group()\r\n  |> sort(columns: [\"_value\"], desc: true)\r\n  |> limit(n: 10)"
+                      "query": "from(bucket: \"AI\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"domain_threats\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"vt_detections\")\r\n  |> filter(fn: (r) => r[\"_value\"] > 0)\r\n  |> group(columns: [\"domain\"])\r\n  |> max()\r\n  |> group()\r\n  |> sort(columns: [\"_value\"], desc: true)\r\n  |> limit(n: 10)"
                     }
                   },
                   "refId": "A",
@@ -1047,10 +1047,10 @@
                     "group": "influxdb",
                     "version": "v0",
                     "datasource": {
-                      "name": "[YOUR_INFLUXDB_DATASOURCE_UID]"
+                      "name": "dfh15f3un7doga"
                     },
                     "spec": {
-                      "query": "from(bucket: \"[YOUR_BUCKET_NAME]\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"domain_threats\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"vt_detections\")\r\n  |> group()\r\n  |> reduce(\r\n      fn: (r, accumulator) => ({\r\n        Clean:    accumulator.Clean    + (if r[\"_value\"] == 0                         then 1 else 0),\r\n        Low:      accumulator.Low      + (if r[\"_value\"] > 0  and r[\"_value\"] <= 5  then 1 else 0),\r\n        Medium:   accumulator.Medium   + (if r[\"_value\"] > 5  and r[\"_value\"] <= 15 then 1 else 0),\r\n        High:     accumulator.High     + (if r[\"_value\"] > 15 and r[\"_value\"] <= 30 then 1 else 0),\r\n        Critical: accumulator.Critical + (if r[\"_value\"] > 30                        then 1 else 0)\r\n      }),\r\n      identity: {Clean: 0, Low: 0, Medium: 0, High: 0, Critical: 0}\r\n    )\r\n  |> drop(columns: [\"_start\", \"_stop\", \"_time\"])"
+                      "query": "from(bucket: \"AI\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"domain_threats\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"vt_detections\")\r\n  |> group()\r\n  |> reduce(\r\n      fn: (r, accumulator) => ({\r\n        Clean:    accumulator.Clean    + (if r[\"_value\"] == 0                         then 1 else 0),\r\n        Low:      accumulator.Low      + (if r[\"_value\"] > 0  and r[\"_value\"] <= 5  then 1 else 0),\r\n        Medium:   accumulator.Medium   + (if r[\"_value\"] > 5  and r[\"_value\"] <= 15 then 1 else 0),\r\n        High:     accumulator.High     + (if r[\"_value\"] > 15 and r[\"_value\"] <= 30 then 1 else 0),\r\n        Critical: accumulator.Critical + (if r[\"_value\"] > 30                        then 1 else 0)\r\n      }),\r\n      identity: {Clean: 0, Low: 0, Medium: 0, High: 0, Critical: 0}\r\n    )\r\n  |> drop(columns: [\"_start\", \"_stop\", \"_time\"])"
                     }
                   },
                   "refId": "A",
@@ -1208,10 +1208,10 @@
                     "group": "influxdb",
                     "version": "v0",
                     "datasource": {
-                      "name": "[YOUR_INFLUXDB_DATASOURCE_UID]"
+                      "name": "dfh15f3un7doga"
                     },
                     "spec": {
-                      "query": "import \"date\"\nfrom(bucket: \"[YOUR_BUCKET_NAME]\")\n  |> range(start: date.truncate(t: now(), unit: 1d))\n  |> filter(fn: (r) => r._measurement == \"vt_usage\" and r._field == \"lookup\")\n  |> sum()"
+                      "query": "import \"date\"\nfrom(bucket: \"AI\")\n  |> range(start: date.truncate(t: now(), unit: 1d))\n  |> filter(fn: (r) => r._measurement == \"vt_usage\" and r._field == \"lookup\")\n  |> sum()"
                     }
                   },
                   "refId": "A",
@@ -1294,10 +1294,10 @@
                     "group": "influxdb",
                     "version": "v0",
                     "datasource": {
-                      "name": "[YOUR_INFLUXDB_DATASOURCE_UID]"
+                      "name": "dfh15f3un7doga"
                     },
                     "spec": {
-                      "query": "from(bucket: \"[YOUR_BUCKET_NAME]\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"domain_threats\" and r._field == \"vt_detections\")\n  |> group(columns: [\"agreement\"])\n  |> count()\n  |> group()\n  |> rename(columns: {agreement: \"feed\"})"
+                      "query": "from(bucket: \"AI\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"domain_threats\" and r._field == \"vt_detections\")\n  |> group(columns: [\"agreement\"])\n  |> count()\n  |> group()\n  |> rename(columns: {agreement: \"feed\"})"
                     }
                   },
                   "refId": "A",
@@ -1377,10 +1377,10 @@
                     "group": "influxdb",
                     "version": "v0",
                     "datasource": {
-                      "name": "[YOUR_INFLUXDB_DATASOURCE_UID]"
+                      "name": "dfh15f3un7doga"
                     },
                     "spec": {
-                      "query": "from(bucket: \"[YOUR_BUCKET_NAME]\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"domain_threats\" and r._field == \"blocked\")\n  |> filter(fn: (r) => r._value == true)\n  |> group(columns: [\"client\"])\n  |> count()\n  |> group()\n  |> sort(columns: [\"_value\"], desc: true)\n  |> limit(n: 10)"
+                      "query": "from(bucket: \"AI\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"domain_threats\" and r._field == \"blocked\")\n  |> filter(fn: (r) => r._value == true)\n  |> group(columns: [\"client\"])\n  |> count()\n  |> group()\n  |> sort(columns: [\"_value\"], desc: true)\n  |> limit(n: 10)"
                     }
                   },
                   "refId": "A",
@@ -1473,10 +1473,10 @@
                     "group": "influxdb",
                     "version": "v0",
                     "datasource": {
-                      "name": "[YOUR_INFLUXDB_DATASOURCE_UID]"
+                      "name": "dfh15f3un7doga"
                     },
                     "spec": {
-                      "query": "from(bucket: \"[YOUR_BUCKET_NAME]\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"domain_threats\" and r._field == \"blocked\")\n  |> map(fn: (r) => ({r with _value: if r._value then 1 else 0}))\n  |> aggregateWindow(every: v.windowPeriod, fn: sum, createEmpty: true)\n  |> map(fn: (r) => ({r with _field: \"blocked\"}))"
+                      "query": "from(bucket: \"AI\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"domain_threats\" and r._field == \"blocked\")\n  |> map(fn: (r) => ({r with _value: if r._value then 1 else 0}))\n  |> aggregateWindow(every: v.windowPeriod, fn: sum, createEmpty: true)\n  |> map(fn: (r) => ({r with _field: \"blocked\"}))"
                     }
                   },
                   "refId": "A",
@@ -1582,10 +1582,10 @@
                     "group": "influxdb",
                     "version": "v0",
                     "datasource": {
-                      "name": "[YOUR_INFLUXDB_DATASOURCE_UID]"
+                      "name": "dfh15f3un7doga"
                     },
                     "spec": {
-                      "query": "from(bucket: \"[YOUR_BUCKET_NAME]\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"domain_threats\" and r._field == \"dga_suspect\")\n  |> map(fn: (r) => ({r with _value: if r._value then 1 else 0}))\n  |> group()\n  |> sum()\n  |> set(key: \"_field\", value: \"dga_suspect\")\n  |> keep(columns: [\"_value\", \"_field\"])\n  |> yield(name: \"dga_suspect\")"
+                      "query": "from(bucket: \"AI\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"domain_threats\" and r._field == \"dga_suspect\")\n  |> map(fn: (r) => ({r with _value: if r._value then 1 else 0}))\n  |> group()\n  |> sum()\n  |> set(key: \"_field\", value: \"dga_suspect\")\n  |> keep(columns: [\"_value\", \"_field\"])\n  |> yield(name: \"dga_suspect\")"
                     }
                   },
                   "refId": "A",
@@ -1600,10 +1600,10 @@
                     "group": "influxdb",
                     "version": "v0",
                     "datasource": {
-                      "name": "[YOUR_INFLUXDB_DATASOURCE_UID]"
+                      "name": "dfh15f3un7doga"
                     },
                     "spec": {
-                      "query": "from(bucket: \"[YOUR_BUCKET_NAME]\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"domain_threats\" and r._field == \"typosquat\")\n  |> map(fn: (r) => ({r with _value: if r._value then 1 else 0}))\n  |> group()\n  |> sum()\n  |> set(key: \"_field\", value: \"typosquat\")\n  |> keep(columns: [\"_value\", \"_field\"])\n  |> yield(name: \"typosquat\")"
+                      "query": "from(bucket: \"AI\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"domain_threats\" and r._field == \"typosquat\")\n  |> map(fn: (r) => ({r with _value: if r._value then 1 else 0}))\n  |> group()\n  |> sum()\n  |> set(key: \"_field\", value: \"typosquat\")\n  |> keep(columns: [\"_value\", \"_field\"])\n  |> yield(name: \"typosquat\")"
                     }
                   },
                   "refId": "B",
@@ -1618,10 +1618,10 @@
                     "group": "influxdb",
                     "version": "v0",
                     "datasource": {
-                      "name": "[YOUR_INFLUXDB_DATASOURCE_UID]"
+                      "name": "dfh15f3un7doga"
                     },
                     "spec": {
-                      "query": "from(bucket: \"[YOUR_BUCKET_NAME]\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"domain_threats\" and r._field == \"punycode\")\n  |> map(fn: (r) => ({r with _value: if r._value then 1 else 0}))\n  |> group()\n  |> sum()\n  |> set(key: \"_field\", value: \"punycode\")\n  |> keep(columns: [\"_value\", \"_field\"])\n  |> yield(name: \"punycode\")"
+                      "query": "from(bucket: \"AI\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"domain_threats\" and r._field == \"punycode\")\n  |> map(fn: (r) => ({r with _value: if r._value then 1 else 0}))\n  |> group()\n  |> sum()\n  |> set(key: \"_field\", value: \"punycode\")\n  |> keep(columns: [\"_value\", \"_field\"])\n  |> yield(name: \"punycode\")"
                     }
                   },
                   "refId": "C",
@@ -1636,10 +1636,10 @@
                     "group": "influxdb",
                     "version": "v0",
                     "datasource": {
-                      "name": "[YOUR_INFLUXDB_DATASOURCE_UID]"
+                      "name": "dfh15f3un7doga"
                     },
                     "spec": {
-                      "query": "from(bucket: \"[YOUR_BUCKET_NAME]\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"domain_threats\" and r._field == \"newly_registered\")\n  |> map(fn: (r) => ({r with _value: if r._value then 1 else 0}))\n  |> group()\n  |> sum()\n  |> set(key: \"_field\", value: \"newly_registered\")\n  |> keep(columns: [\"_value\", \"_field\"])\n  |> yield(name: \"newly_registered\")"
+                      "query": "from(bucket: \"AI\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"domain_threats\" and r._field == \"newly_registered\")\n  |> map(fn: (r) => ({r with _value: if r._value then 1 else 0}))\n  |> group()\n  |> sum()\n  |> set(key: \"_field\", value: \"newly_registered\")\n  |> keep(columns: [\"_value\", \"_field\"])\n  |> yield(name: \"newly_registered\")"
                     }
                   },
                   "refId": "D",
@@ -1772,10 +1772,10 @@
                     "group": "influxdb",
                     "version": "v0",
                     "datasource": {
-                      "name": "[YOUR_INFLUXDB_DATASOURCE_UID]"
+                      "name": "dfh15f3un7doga"
                     },
                     "spec": {
-                      "query": "from(bucket: \"[YOUR_BUCKET_NAME]\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"domain_threats\" and r._field == \"vt_detections\")\n  |> filter(fn: (r) => r._value > 0)\n  |> filter(fn: (r) => r.country != \"unknown\" and r.country != \"??\" and r.country != \"\")\n  |> group(columns: [\"country\"])\n  |> count()\n  |> rename(columns: {country: \"countryCode\"})"
+                      "query": "from(bucket: \"AI\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"domain_threats\" and r._field == \"vt_detections\")\n  |> filter(fn: (r) => r._value > 0)\n  |> filter(fn: (r) => r.country != \"unknown\" and r.country != \"??\" and r.country != \"\")\n  |> group(columns: [\"country\"])\n  |> count()\n  |> group()\n  |> map(fn: (r) => ({ countryCode: r.country, _value: r._value }))"
                     }
                   },
                   "refId": "A",
